@@ -1,0 +1,49 @@
+.side-profile {
+    background-color: #1e1e1e;
+    width: 270px;
+    height: 100vh;
+    padding: 20px;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    right: 0;
+    top: 0;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.4);
+}
+
+.profile-top {
+    margin-top: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.profile-pic {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    border: 3px solid #e1306c;
+    object-fit: cover;
+}
+
+.username {
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: #fffffe;
+}
+#fullname{
+    color: #c2c0c0;
+    font-size: 0.8rem;
+}
+
+.switch-btn{
+    color: rgb(84, 84, 219);
+    cursor: pointer;
+}
+.suggested-all{
+    margin-top: 10px;
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: space-between;
+}

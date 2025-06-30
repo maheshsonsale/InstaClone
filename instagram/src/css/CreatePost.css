@@ -1,0 +1,92 @@
+/* CreatePost.css - Dark Theme + Insta Vibe */
+
+.create-post-container {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 25px 30px;
+    background-color: #30404b;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #fff;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.create-post-container h2 {
+    font-size: 1.6rem;
+    text-align: center;
+    margin-bottom: 20px;
+    background: linear-gradient(90deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.post-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.post-form textarea {
+    background-color: #2a2a2a;
+    border: 1px solid #333;
+    border-radius: 10px;
+    padding: 12px 15px;
+    font-size: 1rem;
+    resize: none;
+    color: #fff;
+    transition: border 0.3s;
+}
+
+.post-form textarea:focus {
+    outline: none;
+    border-color: #e1306c;
+    box-shadow: 0 0 8px rgba(255, 105, 180, 0.3);
+}
+
+.post-form button {
+    background: linear-gradient(135deg, #d62976, #962fbf);
+    border: none;
+    padding: 10px 16px;
+    font-size: 1rem;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.post-form button:hover {
+    background: linear-gradient(135deg, #ff6ec4, #7873f5);
+}
+
+.message {
+    margin-top: 15px;
+    font-size: 0.95rem;
+    text-align: center;
+    color: #feda75;
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .create-post-container {
+        margin: 20px;
+        padding: 20px;
+    }
+
+    .post-form textarea {
+        font-size: 0.95rem;
+    }
+}
