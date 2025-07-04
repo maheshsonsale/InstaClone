@@ -1,20 +1,24 @@
-import UserModel from "./userSchema.js";
-import PostModel from './postSchema.js';
-import './database.js'
+import UserModel from "./schemas/userSchema.js";
+import PostModel from './schemas/postSchema.js';
+import CommentModel from "./schemas/CommentSchema.js";
+import './config/db.js'
 import jwt from 'jsonwebtoken'
 
 
 
+CommentModel.find()
 
 // finding user profile === Login
-export const getUserProfile = async (req, res) => {
+export const login = async (req, res) => {
     try {
         const { email, password } = req.body;
-        const user = await UserModel.findOne({ email, password });
+        const user = await UserModel.findOne({ email })
 
-        if (!user) {
-            console.log("User not found");
-            return res.status(404).send("User not found");
+        
+
+        if (!user || user.password !== password) {
+            console.log("User not foundjs");
+            return res.status(404).send({ message: "User not found", isLogin: false });
         }
         const token = jwt.sign({ id: user._id }, "SECRET_KEY");
 
@@ -23,20 +27,33 @@ export const getUserProfile = async (req, res) => {
             sameSite: "lax",
             secure: false,
         });
-        res.status(200).send("Login successful");
+        res.status(200).send({ message: "Login successful", isLogin: true });
     } catch (error) {
         console.log("Login error:", error);
-        res.status(500).send("Internal Server Error");
+        res.status(500).json({ messege: "Internal Server Error" });
     }
 };
 
 
 //creating user profile === registration
-export const creatUserProfile = async (req, res) => {
+export const registration = async (req, res) => {
     try {
         const { fullname, username, email, password } = req.body
-        await UserModel.create({ fullname, username, email, password })
-        // console.log("user created successful");
+        const isAccount = await UserModel.findOne({ email: email })
+
+        if (!isAccount) {
+            const user = await UserModel.create({ fullname, username, email, password })
+            const token = jwt.sign({ id: user._id }, "SECRET_KEY");
+            res.cookie('token', token, {
+                httpOnly: true,
+                sameSite: "lax",
+                secure: false,
+            });
+            return res.status(201).json({ success: true })
+        }
+
+        return res.status(409).json({ success: false })
+
     } catch (error) {
         console.log("userCreating Error", error);
     }
@@ -46,8 +63,19 @@ export const creatUserProfile = async (req, res) => {
 
 // creating user's post
 export const createpost = async (req, res) => {
-    const { content } = req.body;
-    await PostModel.create({ content: content, userid: req.user._id })
+    try {
+        const user = req.user;
+        // const myuser=await UserModel.findById(user._id).populate('postsid')
+        // console.log(myuser);
+        
+        const { content } = req.body;
+
+        const newPost = await PostModel.create({ content: content, userid:user._id })
+        user.postsid.push(newPost._id)
+        await user.save()
+    } catch (error) {
+        console.log(error);
+    }
     // console.log("poste success");
 }
 
@@ -70,7 +98,7 @@ export const logout = (req, res) => {
         secure: true, // only if using HTTPS
         sameSite: "None" // important for cross-origin requests (like frontend localhost:5173, backend:5000)
     });
-    console.log("User logged out");
+    // console.log("User logged out");
     res.status(200).json({ message: "Logout successful" });
 };
 
@@ -78,6 +106,9 @@ export const logout = (req, res) => {
 
 // loading profile data
 export const profile = async (req, res) => {
+    const fulluser=await req.user
+    // console.log(fulluser);
+    
     res.send(req.user)
 }
 
@@ -104,7 +135,6 @@ export const updatebio = async (req, res) => {
 export const allposts = async (req, res) => {
     try {
         const userid = req.user._id;
-
         const posts = await PostModel.find()
             .sort({ createdAt: -1 })
             .populate("userid");
@@ -129,10 +159,18 @@ export const allposts = async (req, res) => {
 
 
 
+
 export const sideprofile = async (req, res) => {
-    let user = await UserModel.findById(req.user._id)
-    let otherUsers = await UserModel.find()
-    res.json({ username: user.username, fullname: user.fullname, otherUsers: otherUsers })
+    const loggedInUserId = req.user._id.toString()
+    let allUser = await UserModel.find()
+    const otherUsers = allUser.filter(user => user._id.toString() !== loggedInUserId).map((user) => {
+        const isFollowing = user.followers.some(followerId => followerId.toString() === loggedInUserId)
+        return {
+            ...user.toObject(),
+            follUnfoll: isFollowing ? "Unfollow" : "Follow",
+        }
+    })
+    res.json({ username: req.user.username, fullname: req.user.fullname, otherUsers: otherUsers })
 
 }
 
@@ -158,6 +196,75 @@ export const likes = async (req, res) => {
     }
 }
 
+export const comments = async (req, res) => {
+    try {
+
+        const { postid, comments } = req.body;
+        const userid = req.user._id;
+        await CommentModel.create({ postid, comments, userid })
+        // console.log("commented successful")
+    } catch (error) {
+        console.log("Comment Error", error);
+    }
 
 
+}
+
+
+
+export const deletepost = async (req, res) => {
+    const post = PostModel.findById(req.body.postid)
+    await post.deleteOne()
+    // console.log("post deleted successful");
+
+}
+
+export const followers = async (req, res) => {
+    try {
+        const userid = req.user._id;
+        const frontuserid = req.body.frontuserid;
+        const frontuUser = await UserModel.findById(frontuserid)
+        const isFollowing = frontuUser.followers.some(id => id.toString() === userid.toString())
+        if (isFollowing) {
+            frontuUser.followers = frontuUser.followers.filter(id => id.toString() !== userid.toString())
+            await frontuUser.save()
+            return res.json({ follow: false })
+        }
+        frontuUser.followers.push(userid)
+        await frontuUser.save()
+        return res.json({ follow: true })
+    } catch (error) {
+        console.log(error);
+
+    }
+
+}
+
+export const following = async (req, res) => {
+    try {
+        const user = req.user
+        const frontuserid = req.body.frontuserid;
+
+        const isFollowing = user.following.some(id => id.toString() === frontuserid.toString());
+        if (isFollowing) {
+            user.following = user.following.filter(id => id.toString() !== frontuserid.toString());
+            await user.save()
+            return
+        }
+        user.following.push(frontuserid)
+        await user.save()
+    } catch (error) {
+        console.log(error);
+
+    }
+
+}
+
+
+export const otherPersonPosts = async (req, res) => {
+    const { userid } = req.body
+    let posts=await PostModel.find({userid:userid})
+    res.send(posts)
+
+}
 
