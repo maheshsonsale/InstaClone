@@ -54,12 +54,12 @@ const FeedPage = () => {
                             <button className="feed-action-btn">🔁 Share</button>
                         </div>
 
-                        <span className="feed-time">Posted on: {new Date(post.createdAt).toLocaleString()}</span>
+                        <span  className="feed-time a">Posted on: {new Date(post.createdAt).toLocaleString()}</span>
                     </div>
                 ))
             )}
         </div>
     );
 };
-
+ 
 export default FeedPage;
