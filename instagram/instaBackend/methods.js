@@ -6,7 +6,20 @@ import jwt from 'jsonwebtoken'
 
 
 
-// CommentModel.find()
+//  Authentification for redirecting page to login or register
+export const Auth = async (req, res) => {
+    const token = req.cookies.token;
+    if (!token) {
+        return res.status(401).json({ loggedIn:false })
+    } 
+    try {
+        const verified=jwt.verify(token,'SECRET_KEY')
+        return res.status(200).json({ loggedIn:true })
+    } catch (error) {
+        return res.status(401).json({ loggedIn:false })
+    }
+}
+
 
 // finding user profile === Login
 export const login = async (req, res) => {
@@ -14,7 +27,7 @@ export const login = async (req, res) => {
         const { email, password } = req.body;
         const user = await UserModel.findOne({ email })
 
-        
+
 
         if (!user || user.password !== password) {
             console.log("User not foundjs");
@@ -24,7 +37,7 @@ export const login = async (req, res) => {
 
         res.cookie('token', token, {
             httpOnly: true,
-            sameSite: "lax",
+            sameSite: "Lax",
             secure: false,
         });
         res.status(200).send({ message: "Login successful", isLogin: true });
@@ -65,8 +78,8 @@ export const registration = async (req, res) => {
 export const createpost = async (req, res) => {
     try {
         const user = req.user;
-        const { content,image } = req.body;
-        const newPost = await PostModel.create({ content: content, userid:user._id ,image:image})
+        const { content, image } = req.body;
+        const newPost = await PostModel.create({ content: content, userid: user._id, image: image })
         user.postsid.push(newPost._id)
         await user.save()
     } catch (error) {
@@ -81,13 +94,10 @@ export const createpost = async (req, res) => {
 export const MyPosts = async (req, res) => {
 
     let posts = await PostModel.find({ userid: req.user._id }).sort({ createdAt: -1 })
-    // console.log(posts);
     res.send(posts)
 }
 
 
-
-// logout handler  but cookies are not working (deleting)
 export const logout = (req, res) => {
     res.clearCookie("token", {
         httpOnly: true,
@@ -102,13 +112,7 @@ export const logout = (req, res) => {
 
 // loading profile data
 export const profile = async (req, res) => {
-console.log("hello");
-
-    const myuser=await UserModel.findOne({_id:req.user._id}) .populate('followers')
-    console.log(myuser);
-       
-
-
+    const myuser = await UserModel.findOne({ _id: req.user._id }).populate('followers')
     res.send(req.user)
 }
 
@@ -138,7 +142,7 @@ export const allposts = async (req, res) => {
         const posts = await PostModel.find()
             .sort({ createdAt: -1 })
             .populate("userid");
-// console.log(posts);
+        // console.log(posts);
 
         // Add like/unlike flag in-memory only
         const modifiedPosts = posts.map((post) => {
@@ -171,7 +175,7 @@ export const sideprofile = async (req, res) => {
             follUnfoll: isFollowing ? "Unfollow" : "Follow",
         }
     })
-    res.json({ username: req.user.username, fullname: req.user.fullname,pic:req.user.pic ,otherUsers: otherUsers })
+    res.json({ username: req.user.username, fullname: req.user.fullname, pic: req.user.pic, otherUsers: otherUsers })
 
 }
 
@@ -202,16 +206,16 @@ export const comments = async (req, res) => {
 
         const { postid, comments } = req.body;
         const sender = req.user._id;
-        await CommentModel.create({ postid:postid, comments:comments, sender:sender })
+        await CommentModel.create({ postid: postid, comments: comments, sender: sender })
     } catch (error) {
         console.log("Comment Error", error);
     }
 
 
 }
-export const loadAllComments=async(req,res)=>{
-    const {postid}=req.body;
-    const postComments=await CommentModel.find({postid:postid})
+export const loadAllComments = async (req, res) => {
+    const { postid } = req.body;
+    const postComments = await CommentModel.find({ postid: postid })
     // console.log(postComments);
     res.send(postComments)
 }
@@ -270,23 +274,23 @@ export const otherPersonPosts = async (req, res) => {
     const { userid } = req.body
     // let pop=await UserModel.findOne({userid:'6860fa856790e50b8958f16e'}).populate()
     // console.log(pop);
-    
-    let posts=await PostModel.find({userid:userid})
+
+    let posts = await PostModel.find({ userid: userid })
     res.send(posts)
-    
+
 
 }
 export const editPic = async (req, res) => {
     const { imageUrl } = req.body;
-    await UserModel.updateOne({_id:req.user._id},{$set:{pic:imageUrl}})
+    await UserModel.updateOne({ _id: req.user._id }, { $set: { pic: imageUrl } })
 }
 export const search = async (req, res) => {
     try {
         const { search } = req.body;
-        const users=await UserModel.find({username:{$regex:search,$options:'i'}}).select('-password')
+        const users = await UserModel.find({ username: { $regex: search, $options: 'i' } }).select('-password')
         res.status(200).send(users)
     } catch (error) {
         res.status(400).send(error)
-    }   
+    }
 }
 

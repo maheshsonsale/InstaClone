@@ -3,6 +3,7 @@ import * as method from './methods.js'
 import AuthMiddleware from './middlewares/AuthMiddleware.js'
 let rout=express()
 
+rout.post('/Auth',method.Auth) // registration
 rout.post('/create',method.registration) // registration
 rout.post('/login',method.login) // login
 rout.post('/createpost',AuthMiddleware,method.createpost)  // post create

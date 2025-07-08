@@ -8,6 +8,8 @@ import OtherPerson from "./pages/OtherPerson"
 import './App.css'
 import { Routes, Route } from "react-router-dom"
 import SearchPage from "./pages/SearchPage"
+import ProtectiveRoute from "./components/ProtectiveRoute"
+
 function App() {
 
   return (
@@ -15,7 +17,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/home/" element={<HomePage />} >
+        <Route path="/home/" element={<ProtectiveRoute><HomePage /></ProtectiveRoute>} >
           <Route path="profile" element={<ProfilePage />} />
           <Route path="otherperson/:id" element={<OtherPerson />} />
           <Route path="createpost" element={<CreatePost />} />
