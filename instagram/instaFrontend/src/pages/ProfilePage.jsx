@@ -32,7 +32,7 @@ const ProfilePage = () => {
         }
 
         fetchProfile();
-    });
+    },[]);
 
     // Fetch user's posts
     useEffect(() => {

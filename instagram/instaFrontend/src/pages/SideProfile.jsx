@@ -10,9 +10,7 @@ const SideProfile = () => {
     const [otherUsers, setOtherUsers] = useState([])
 
     useEffect(() => {
-
         async function sideprofile() {
-
             try {
                 const response = await axios.get('http://localhost:5000/sideprofile', { withCredentials: true })
                 setUsername(response.data.username)

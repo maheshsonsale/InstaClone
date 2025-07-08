@@ -10,8 +10,16 @@
     right: 0;
     top: 0;
     box-shadow: 4px 0 20px rgba(0, 0, 0, 0.4);
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;             /* Firefox */
 }
 
+.side-profile::-webkit-scrollbar {
+    display: none;                    /* Chrome, Safari */
+}
+
+/* Top profile section */
 .profile-top {
     margin-top: 15px;
     display: flex;
@@ -19,31 +27,84 @@
     align-items: center;
 }
 
+/* Image */
 .profile-pic {
-    width: 45px;
-    height: 45px;
+    width: 42px;
+    height: 42px;
     border-radius: 50%;
-    border: 3px solid #e1306c;
+    border: 2px solid #e1306c;
     object-fit: cover;
+    flex-shrink: 0;
 }
 
+/* Text */
 .username {
     cursor: pointer;
-    font-size: 0.8rem;
-    color: #fffffe;
-}
-#fullname{
-    color: #c2c0c0;
-    font-size: 0.8rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #fff;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.switch-btn{
-    color: rgb(84, 84, 219);
-    cursor: pointer;
+#fullname {
+    color: #c2c0c0;
+    font-size: 0.75rem;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
-.suggested-all{
-    margin-top: 10px;
-    margin-bottom: 30px;
+
+/* Switch button */
+.switch-btn {
+    color: #4c8bf5;
+    font-size: 0.75rem;
+    cursor: pointer;
+    white-space: nowrap;
+    user-select: none;
+}
+
+/* Suggested users header */
+.suggested-all {
+    margin-top: 20px;
+    margin-bottom: 20px;
     display: flex;
     justify-content: space-between;
+    font-size: 0.75rem;
+    color: gray;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .side-profile {
+        position: relative;
+        width: 100%;
+        height: auto;
+        box-shadow: none;
+        padding: 15px;
+    }
+
+    .profile-pic {
+        width: 38px;
+        height: 38px;
+    }
+
+    .username {
+        font-size: 0.8rem;
+    }
+
+    #fullname {
+        font-size: 0.7rem;
+    }
+
+    .switch-btn {
+        font-size: 0.7rem;
+    }
+
+    .suggested-all {
+        font-size: 0.7rem;
+    }
 }

@@ -102,9 +102,13 @@ export const logout = (req, res) => {
 
 // loading profile data
 export const profile = async (req, res) => {
-    const fulluser=await req.user
-    // console.log(fulluser);
-    
+console.log("hello");
+
+    const myuser=await UserModel.findOne({_id:req.user._id}) .populate('followers')
+    console.log(myuser);
+       
+
+
     res.send(req.user)
 }
 
@@ -264,8 +268,12 @@ export const following = async (req, res) => {
 
 export const otherPersonPosts = async (req, res) => {
     const { userid } = req.body
+    // let pop=await UserModel.findOne({userid:'6860fa856790e50b8958f16e'}).populate()
+    // console.log(pop);
+    
     let posts=await PostModel.find({userid:userid})
     res.send(posts)
+    
 
 }
 export const editPic = async (req, res) => {
@@ -275,7 +283,7 @@ export const editPic = async (req, res) => {
 export const search = async (req, res) => {
     try {
         const { search } = req.body;
-        const users=await UserModel.find({fullname:{$regex:search,$options:'i'},}).select('-password')
+        const users=await UserModel.find({username:{$regex:search,$options:'i'}}).select('-password')
         res.status(200).send(users)
     } catch (error) {
         res.status(400).send(error)

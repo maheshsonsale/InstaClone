@@ -6,7 +6,7 @@ import '../css/ProfilePage.css';
 const OtherPerson = () => {
 
 
-    // const {id}=useParams()
+    
     const location = useLocation()
     const passedData = location.state?.userdata;
 
