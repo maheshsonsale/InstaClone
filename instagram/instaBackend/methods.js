@@ -10,13 +10,13 @@ import jwt from 'jsonwebtoken'
 export const Auth = async (req, res) => {
     const token = req.cookies.token;
     if (!token) {
-        return res.status(401).json({ loggedIn:false })
-    } 
+        return res.status(401).json({ loggedIn: false })
+    }
     try {
-        const verified=jwt.verify(token,'SECRET_KEY')
-        return res.status(200).json({ loggedIn:true })
+        const verified = jwt.verify(token, 'SECRET_KEY')
+        return res.status(200).json({ loggedIn: true })
     } catch (error) {
-        return res.status(401).json({ loggedIn:false })
+        return res.status(401).json({ loggedIn: false })
     }
 }
 
@@ -27,14 +27,11 @@ export const login = async (req, res) => {
         const { email, password } = req.body;
         const user = await UserModel.findOne({ email })
 
-
-
         if (!user || user.password !== password) {
-            console.log("User not foundjs");
-            return res.status(404).send({ message: "User not found", isLogin: false });
+            return res.status(404).send("")
         }
-        const token = jwt.sign({ id: user._id }, "SECRET_KEY");
 
+        const token = jwt.sign({ id: user._id }, "SECRET_KEY");
         res.cookie('token', token, {
             httpOnly: true,
             sameSite: "Lax",
@@ -77,24 +74,14 @@ export const registration = async (req, res) => {
 // creating user's post
 export const createpost = async (req, res) => {
     try {
-        const user = req.user;
+        const user = await UserModel.findById({ _id: req.user._id })
         const { content, image } = req.body;
         const newPost = await PostModel.create({ content: content, userid: user._id, image: image })
-        user.postsid.push(newPost._id)
+        user.postids.push(newPost._id)
         await user.save()
     } catch (error) {
         console.log(error);
     }
-    // console.log("poste success");
-}
-
-
-
-// loading my all post in profile page
-export const MyPosts = async (req, res) => {
-
-    let posts = await PostModel.find({ userid: req.user._id }).sort({ createdAt: -1 })
-    res.send(posts)
 }
 
 
@@ -112,8 +99,12 @@ export const logout = (req, res) => {
 
 // loading profile data
 export const profile = async (req, res) => {
-    const myuser = await UserModel.findOne({ _id: req.user._id }).populate('followers')
-    res.send(req.user)
+    try {
+        const myuser = await UserModel.findOne({ _id: req.user._id }).populate('followers').populate('postids')
+        res.send(myuser)
+    } catch (e) {
+        return e
+    }
 }
 
 
@@ -121,40 +112,32 @@ export const profile = async (req, res) => {
 // updating bio in profile page
 export const updatebio = async (req, res) => {
     const { bio } = req.body;
-
     const userid = req.user._id;
     let user = await UserModel.updateOne({ _id: userid }, { $set: { bio: bio } })
     if (user.modifiedCount === 0) {
         return res.status(404).json({ message: "User not found or bio unchanged" });
     }
     res.status(200).json({ message: "Bio updated successfully", result: user });
-    // console.log("bio updated successful");
 }
 
 
 
 
 // show all post in feed 
-
 export const allposts = async (req, res) => {
     try {
         const userid = req.user._id;
         const posts = await PostModel.find()
             .sort({ createdAt: -1 })
             .populate("userid");
-        // console.log(posts);
-
-        // Add like/unlike flag in-memory only
         const modifiedPosts = posts.map((post) => {
             const isLiked = post.likes.includes(userid);
-
             return {
                 ...post.toObject(), // convert mongoose doc to plain object
                 likeunlike: isLiked ? "Unlike" : "Like",
                 likeCount: post.likes.length,
             };
         });
-
         res.status(200).json(modifiedPosts);
     } catch (error) {
         console.error("Like/Unlike logic error:", error);
@@ -164,10 +147,9 @@ export const allposts = async (req, res) => {
 
 
 
-
 export const sideprofile = async (req, res) => {
     const loggedInUserId = req.user._id.toString()
-    let allUser = await UserModel.find()
+    let allUser = await UserModel.find().populate('postids')
     const otherUsers = allUser.filter(user => user._id.toString() !== loggedInUserId).map((user) => {
         const isFollowing = user.followers.some(followerId => followerId.toString() === loggedInUserId)
         return {
@@ -176,24 +158,22 @@ export const sideprofile = async (req, res) => {
         }
     })
     res.json({ username: req.user.username, fullname: req.user.fullname, pic: req.user.pic, otherUsers: otherUsers })
-
 }
 
 
 // LIkes section
 export const likes = async (req, res) => {
     try {
-        const userid = req.user._id
+        const user = await UserModel.findById({_id:req.user._id})
         let { postid } = req.body
         let post = await PostModel.findById(postid)
-
-        let alreadyLiked = post.likes.some(id => id.toString() === userid.toString())
+        let alreadyLiked = post.likes.some(id => id.toString() === user._id.toString())
         if (alreadyLiked) {
-            post.likes = post.likes.filter(id => id.toString() !== userid.toString())
+            post.likes = post.likes.filter(id => id.toString() !== user._id.toString())
             await post.save()
             return res.json({ liked: false })
         }
-        post.likes.push(userid)
+        post.likes.push(user._id)
         await post.save();
         return res.json({ liked: true })
     } catch (error) {
@@ -201,33 +181,33 @@ export const likes = async (req, res) => {
     }
 }
 
+// handling comment 
 export const comments = async (req, res) => {
     try {
-
         const { postid, comments } = req.body;
-        const sender = req.user._id;
-        await CommentModel.create({ postid: postid, comments: comments, sender: sender })
+        const sender = await UserModel.findById({_id:req.user._id});
+       const comment= await CommentModel.create({ postid: postid, comments: comments, sender: sender._id })
+       sender.commentids.push(comment._id)
+       sender.save()
     } catch (error) {
         console.log("Comment Error", error);
     }
-
-
 }
+
+// loading all comments in post
 export const loadAllComments = async (req, res) => {
     const { postid } = req.body;
     const postComments = await CommentModel.find({ postid: postid })
-    // console.log(postComments);
     res.send(postComments)
 }
 
-
+// deleting post only admin
 export const deletepost = async (req, res) => {
     const post = PostModel.findById(req.body.postid)
     await post.deleteOne()
-    // console.log("post deleted successful");
-
 }
 
+// followers handling
 export const followers = async (req, res) => {
     try {
         const userid = req.user._id;
@@ -249,6 +229,7 @@ export const followers = async (req, res) => {
 
 }
 
+// following handling
 export const following = async (req, res) => {
     try {
         const user = req.user
@@ -264,33 +245,43 @@ export const following = async (req, res) => {
         await user.save()
     } catch (error) {
         console.log(error);
-
     }
-
 }
 
-
-export const otherPersonPosts = async (req, res) => {
-    const { userid } = req.body
-    // let pop=await UserModel.findOne({userid:'6860fa856790e50b8958f16e'}).populate()
-    // console.log(pop);
-
-    let posts = await PostModel.find({ userid: userid })
-    res.send(posts)
-
-
-}
+// edit profile pic of user 
 export const editPic = async (req, res) => {
     const { imageUrl } = req.body;
     await UserModel.updateOne({ _id: req.user._id }, { $set: { pic: imageUrl } })
 }
+
+// search box to find all users
 export const search = async (req, res) => {
     try {
         const { search } = req.body;
-        const users = await UserModel.find({ username: { $regex: search, $options: 'i' } }).select('-password')
+        const users = await UserModel.find({$or:[{username: { $regex: search, $options: 'i' } },
+            {fullname:{$regex:search,$options:'i'}}]}).select('-password')
         res.status(200).send(users)
     } catch (error) {
         res.status(400).send(error)
     }
 }
-
+export const deleteProfile=async (req,res) => {
+    try {  
+        const {password}=req.body;
+        const user =await UserModel.findById(req.user._id).populate('postids')
+        if (password!==user.password) {
+            return 
+        }
+        await user.deleteOne()
+        res.clearCookie("token",{
+            httpOnly:true,
+            secure:true,
+            sameSite:"None",
+        })
+        await PostModel.deleteMany({_id:{$in:user.postids}})
+        await CommentModel.deleteMany({_id:{$in:user.commentids}})
+        res.status(200).json({delete:true})
+    } catch (error) {
+        res.status(500).send({error:error,delete:false})
+    }
+}

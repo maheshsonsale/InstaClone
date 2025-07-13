@@ -1,10 +1,12 @@
 import axios from 'axios';
-import React, { useEffect, useState,useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import '../css/ProfilePage.css';
+import { useNavigate } from 'react-router-dom';
 
 
 const ProfilePage = () => {
-    const picUploadRef=useRef()
+    const navigate = useNavigate();
+    const picUploadRef = useRef()
     const [fullname, setFullname] = useState('');
     const [username, setUsername] = useState('');
     const [bio, setBio] = useState('');
@@ -12,7 +14,7 @@ const ProfilePage = () => {
     const [followers, setFollowers] = useState(0)
     const [following, setFollowing] = useState(0)
     const [imageUrl, setImageUrl] = useState()
-    // const [pic, setPic] = useState("")
+
 
 
     // Fetch profile data
@@ -26,29 +28,15 @@ const ProfilePage = () => {
                 setFollowers(response.data.followers)
                 setFollowing(response.data.following)
                 setImageUrl(response.data.pic)
+                setPosts(response.data.postids)
             } catch (error) {
                 console.log(error);
             }
         }
 
         fetchProfile();
-    },[]);
-
-    // Fetch user's posts
-    useEffect(() => {
-        async function fetchMyPosts() {
-            try {
-                const response = await axios.get('http://localhost:5000/myposts', { withCredentials: true });
-                setPosts(response.data);
-            } catch (error) {
-                console.error("Error fetching posts:", error.message);
-            }
-        }
-
-        fetchMyPosts();
     });
 
-    // Update bio
     async function updateBio() {
         const newBio = prompt("Enter New Bio", bio);
         if (!newBio) return;
@@ -85,22 +73,33 @@ const ProfilePage = () => {
         data.append("cloud_name", "dzmmp468g")
         try {
             const res = await axios.post("https://api.cloudinary.com/v1_1/dzmmp468g/image/upload", data);
-            await axios.post("http://localhost:5000/editPic", { imageUrl:res.data.secure_url  }, { withCredentials: true })
+            await axios.post("http://localhost:5000/editPic", { imageUrl: res.data.secure_url }, { withCredentials: true })
         } catch (error) {
-            console.log("Upload failed:",error);
+            console.log("Upload failed:", error);
         }
+    }
+
+    function profileDelete() {
+        const password = prompt("Please enter your password")
+        axios.delete('http://localhost:5000/deleteProfile', { data: { password: password }, withCredentials: true }).then(() => {
+            navigate('/')
+        }).catch((error)=>{
+            if (error.response.status==401) {
+                return
+            }
+        })
     }
     return (
         <div className="profile-container">
             <div className="profile-header">
-                <img className="profile-dp" src={imageUrl ? imageUrl: "https://i.pravatar.cc/150?img=10"} alt="No Image Found" onClick={()=>picUploadRef.current.click()} style={{cursor:"pointer"}}/>
+                <img className="profile-dp" src={imageUrl ? imageUrl : "https://i.pravatar.cc/150?img=10"} alt="No Image Found" onClick={() => picUploadRef.current.click()} style={{ cursor: "pointer" }} />
 
                 <div className="profile-info">
                     <div className="username-section">
                         <h2>{username}</h2>
-                        <input type='file' className="btn" ref={picUploadRef} onChange={handlePic} style={{display:"none"}} />
-                        
-                        
+                        <input type='file' className="btn" ref={picUploadRef} onChange={handlePic} style={{ display: "none" }} />
+
+
 
                     </div>
 
@@ -108,6 +107,7 @@ const ProfilePage = () => {
                         <span><strong>{posts.length}</strong> posts</span>
                         <span><strong>{followers.length}</strong> followers</span>
                         <span><strong>{following.length}</strong> following</span>
+                        <button style={{ cursor: 'pointer' }} onClick={() => { profileDelete() }}>Delete Profile</button>
                     </div>
 
                     <div className="bio">

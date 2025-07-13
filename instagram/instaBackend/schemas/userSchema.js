@@ -17,10 +17,6 @@ let userSchema = mongoose.Schema({
         type: String,
         required: true,
     },
-    createAt: {
-        type: Date,
-        default: Date.now
-    },
     bio: {
         type: String,
     },
@@ -28,9 +24,14 @@ let userSchema = mongoose.Schema({
         type: String,
     },
 
-    postsid: [{
+    postids: [{
         type: mongoose.Schema.Types.ObjectId,
         ref:'posts',
+    }],
+
+    commentids: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref:'userlogin',
     }],
     followers: [{
         type: mongoose.Schema.Types.ObjectId,
@@ -41,7 +42,7 @@ let userSchema = mongoose.Schema({
         ref:'userlogin',
     }],
 
-});
+},{timestaps:true});
 
 const UserModel = mongoose.model('userlogin', userSchema)
 export default UserModel

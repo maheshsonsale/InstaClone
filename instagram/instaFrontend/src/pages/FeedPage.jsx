@@ -50,7 +50,7 @@ const FeedPage = () => {
 
     // *********************************post the  comment in *****************************
     function postcomment(postid) {
-        axios.post('http://localhost:5000/comments', { postid, comments: comments[postid] }, {
+        axios.post('http://localhost:5000/comments', { postid:postid, comments: comments[postid] }, {
             withCredentials: true,
         }).then(() => {
             setComments((prev) => ({ ...prev, [postid]: '' }))
@@ -62,13 +62,11 @@ const FeedPage = () => {
     // ***********************************  all post comment load here **************************************************
     function loadAllComments(postid) {
         axios.post('http://localhost:5000/loadAllComments', { postid }, { withCredentials: true }).then((res) => {
-            console.log(res.data);
             setAllComments(res.data)
         }).catch((err) => {
             console.log(err);
         })
     }
-
     //******************************************** JSX ****************************************************** */
     return (
         <div className="feed-container">

@@ -13,16 +13,14 @@ const Login = () => {
 
     const handleLogin = async(e) => {
         e.preventDefault();
-        try {
+        
             axios.post('http://localhost:5000/login',{email,password},{withCredentials:true}).then(()=>{
                     setMessege("Login Success")
                     navigate('/home')
                 }).catch(()=>{
-                    setMessege("Something went wrong")
+                    setMessege("Invalid Email Or Password")
                 })
-        } catch (error) {
-            console.log(error.response.data.message);
-        }
+        
 
     };
 

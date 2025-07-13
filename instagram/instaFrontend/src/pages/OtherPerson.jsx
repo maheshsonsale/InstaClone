@@ -1,57 +1,33 @@
-import axios from 'axios';
+
 import { useLocation } from 'react-router-dom';
 import React, { useEffect, useState } from 'react';
 import '../css/ProfilePage.css';
 
 const OtherPerson = () => {
-
-
-    
     const location = useLocation()
     const passedData = location.state?.userdata;
-
-
-
     const [fullname, setFullname] = useState('');
     const [username, setUsername] = useState('');
     const [bio, setBio] = useState('');
     const [posts, setPosts] = useState([]);
     const [followers, setFollowers] = useState(0)
     const [following, setFollowing] = useState(0)
-    const [pic,setPic]=useState('')
+    const [pic, setPic] = useState('')
 
 
     useEffect(() => {
-
         setFullname(passedData.fullname);
         setUsername(passedData.username || '');
         setBio(passedData.bio);
         setFollowers(passedData.followers)
         setFollowing(passedData.following)
         setPic(passedData.pic)
-        // setPosts(passedData.posts)
+        setPosts(passedData.postsid);
     }, [passedData])
-
-  // Fetch user's posts
-    useEffect(() => {
-        async function fetchMyPosts() {
-            try {
-                const response = await axios.post('http://localhost:5000/otherPersonPosts',{userid:passedData._id}, { withCredentials: true });
-                setPosts(response.data);
-            } catch (error) {
-                console.error("Error fetching posts:", error.message);
-            }
-        }
-
-        fetchMyPosts();
-    });
-
-
-    // Update bio
     return (
         <div className="profile-container">
             <div className="profile-header">
-                <img className="profile-dp" src={pic?pic:"https://i.pravatar.cc/150?img=10"} alt="Profile" />
+                <img className="profile-dp" src={pic ? pic : "https://i.pravatar.cc/150?img=10"} alt="Profile" />
 
                 <div className="profile-info">
                     <div className="username-section">
