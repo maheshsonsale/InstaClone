@@ -1,4 +1,5 @@
 import axios from 'axios';
+import PopupUpdateProfile from '../components/PopupUpdateProfile';
 import React, { useEffect, useState, useRef } from 'react';
 import '../css/ProfilePage.css';
 import { useNavigate } from 'react-router-dom';
@@ -14,7 +15,7 @@ const ProfilePage = () => {
     const [followers, setFollowers] = useState(0)
     const [following, setFollowing] = useState(0)
     const [imageUrl, setImageUrl] = useState()
-
+const [showPopup, setShowPopup] = useState(false);
 
 
     // Fetch profile data
@@ -37,20 +38,8 @@ const ProfilePage = () => {
         fetchProfile();
     });
 
-    async function updateBio() {
-        const newBio = prompt("Enter New Bio", bio);
-        if (!newBio) return;
-        setBio(newBio);
-
-        try {
-            await axios.post(
-                'http://localhost:5000/updatebio',
-                { bio: newBio },
-                { withCredentials: true }
-            );
-        } catch (error) {
-            console.log(error);
-        }
+    function showPop(){
+        setShowPopup(true)
     }
 
     async function deletepost(postid) {
@@ -91,6 +80,7 @@ const ProfilePage = () => {
     }
     return (
         <div className="profile-container">
+            {showPopup &&(<PopupUpdateProfile close={()=>setShowPopup(false)}/>)}
             <div className="profile-header">
                 <img className="profile-dp" src={imageUrl ? imageUrl : "https://i.pravatar.cc/150?img=10"} alt="No Image Found" onClick={() => picUploadRef.current.click()} style={{ cursor: "pointer" }} />
 
@@ -112,7 +102,7 @@ const ProfilePage = () => {
 
                     <div className="bio">
                         <strong>{fullname}</strong><br />
-                        <p>{bio}<span onClick={updateBio} style={{ cursor: 'pointer', color: '#007bff', fontSize: '0.9rem', padding: '0 15px', textDecoration: 'underline' }}>Edite</span></p>
+                        <p>{bio}<span onClick={showPop} style={{ cursor: 'pointer', color: '#007bff', fontSize: '0.9rem', padding: '0 15px', textDecoration: 'underline' }}>Edite Profile</span></p>
 
                     </div>
                 </div>

@@ -3,6 +3,7 @@ import PostModel from './schemas/postSchema.js';
 import CommentModel from "./schemas/CommentSchema.js";
 import './config/db.js'
 import jwt from 'jsonwebtoken'
+import bcrypt from 'bcrypt'
 
 
 
@@ -26,11 +27,10 @@ export const login = async (req, res) => {
     try {
         const { email, password } = req.body;
         const user = await UserModel.findOne({ email })
-
-        if (!user || user.password !== password) {
+        const hashPass = await bcrypt.compare(password, user.password)
+        if (!user || !hashPass) {
             return res.status(404).send("")
         }
-
         const token = jwt.sign({ id: user._id }, "SECRET_KEY");
         res.cookie('token', token, {
             httpOnly: true,
@@ -39,7 +39,6 @@ export const login = async (req, res) => {
         });
         res.status(200).send({ message: "Login successful", isLogin: true });
     } catch (error) {
-        console.log("Login error:", error);
         res.status(500).json({ messege: "Internal Server Error" });
     }
 };
@@ -51,18 +50,18 @@ export const registration = async (req, res) => {
         const { fullname, username, email, password } = req.body
         const isAccount = await UserModel.findOne({ email: email })
 
-        if (!isAccount) {
-            const user = await UserModel.create({ fullname, username, email, password })
-            const token = jwt.sign({ id: user._id }, "SECRET_KEY");
-            res.cookie('token', token, {
-                httpOnly: true,
-                sameSite: "lax",
-                secure: false,
-            });
-            return res.status(201).json({ success: true })
+        if (isAccount) {
+            return res.status(200).json({ success: false })
         }
-
-        return res.status(409).json({ success: false })
+        const hashed = await bcrypt.hash(password, 10)
+        const user = await UserModel.create({ fullname, username, email, password: hashed })
+        const token = jwt.sign({ id: user._id }, "SECRET_KEY");
+        res.cookie('token', token, {
+            httpOnly: true,
+            sameSite: "lax",
+            secure: false,
+        });
+        return res.status(201).json({ success: true })
 
     } catch (error) {
         console.log("userCreating Error", error);
@@ -100,26 +99,14 @@ export const logout = (req, res) => {
 // loading profile data
 export const profile = async (req, res) => {
     try {
-        const myuser = await UserModel.findOne({ _id: req.user._id }).populate('followers').populate('postids')
-        res.send(myuser)
+        const user = await UserModel.findOne({ _id: req.user._id }).sort({
+            createdAt: -1
+        }).populate('followers').populate('postids')
+        res.send(user)
     } catch (e) {
         return e
     }
 }
-
-
-
-// updating bio in profile page
-export const updatebio = async (req, res) => {
-    const { bio } = req.body;
-    const userid = req.user._id;
-    let user = await UserModel.updateOne({ _id: userid }, { $set: { bio: bio } })
-    if (user.modifiedCount === 0) {
-        return res.status(404).json({ message: "User not found or bio unchanged" });
-    }
-    res.status(200).json({ message: "Bio updated successfully", result: user });
-}
-
 
 
 
@@ -129,7 +116,7 @@ export const allposts = async (req, res) => {
         const userid = req.user._id;
         const posts = await PostModel.find()
             .sort({ createdAt: -1 })
-            .populate("userid");
+            .populate("userid").populate({ path: 'commentids', populate: { path: 'sender', model: 'userDetail' } });
         const modifiedPosts = posts.map((post) => {
             const isLiked = post.likes.includes(userid);
             return {
@@ -138,6 +125,7 @@ export const allposts = async (req, res) => {
                 likeCount: post.likes.length,
             };
         });
+
         res.status(200).json(modifiedPosts);
     } catch (error) {
         console.error("Like/Unlike logic error:", error);
@@ -149,6 +137,7 @@ export const allposts = async (req, res) => {
 
 export const sideprofile = async (req, res) => {
     const loggedInUserId = req.user._id.toString()
+    const User = req.user;
     let allUser = await UserModel.find().populate('postids')
     const otherUsers = allUser.filter(user => user._id.toString() !== loggedInUserId).map((user) => {
         const isFollowing = user.followers.some(followerId => followerId.toString() === loggedInUserId)
@@ -157,14 +146,14 @@ export const sideprofile = async (req, res) => {
             follUnfoll: isFollowing ? "Unfollow" : "Follow",
         }
     })
-    res.json({ username: req.user.username, fullname: req.user.fullname, pic: req.user.pic, otherUsers: otherUsers })
+    res.json({ User: User, otherUsers: otherUsers })
 }
 
 
 // LIkes section
 export const likes = async (req, res) => {
     try {
-        const user = await UserModel.findById({_id:req.user._id})
+        const user = await UserModel.findById({ _id: req.user._id })
         let { postid } = req.body
         let post = await PostModel.findById(postid)
         let alreadyLiked = post.likes.some(id => id.toString() === user._id.toString())
@@ -185,10 +174,14 @@ export const likes = async (req, res) => {
 export const comments = async (req, res) => {
     try {
         const { postid, comments } = req.body;
-        const sender = await UserModel.findById({_id:req.user._id});
-       const comment= await CommentModel.create({ postid: postid, comments: comments, sender: sender._id })
-       sender.commentids.push(comment._id)
-       sender.save()
+        const post = await PostModel.findById(postid)
+        const sender = await UserModel.findById({ _id: req.user._id });
+        const comment = await CommentModel.create({ postid: postid, comments: comments, sender: sender._id })
+        sender.commentids.push(comment._id)
+        await sender.save()
+
+        post.commentids.push(comment._id)
+        await post.save()
     } catch (error) {
         console.log("Comment Error", error);
     }
@@ -203,7 +196,10 @@ export const loadAllComments = async (req, res) => {
 
 // deleting post only admin
 export const deletepost = async (req, res) => {
-    const post = PostModel.findById(req.body.postid)
+    const post = await PostModel.findById(req.body.postid)
+    const user = await UserModel.findById(req.user._id)
+    user.postids = user.postids.filter(id => id.toString() !== post._id.toString())
+    await user.save()
     await post.deleteOne()
 }
 
@@ -258,30 +254,51 @@ export const editPic = async (req, res) => {
 export const search = async (req, res) => {
     try {
         const { search } = req.body;
-        const users = await UserModel.find({$or:[{username: { $regex: search, $options: 'i' } },
-            {fullname:{$regex:search,$options:'i'}}]}).select('-password')
+        const users = await UserModel.find({
+            $or: [{ username: { $regex: search, $options: 'i' } },
+            { fullname: { $regex: search, $options: 'i' } }]
+        }).select('-password')
         res.status(200).send(users)
     } catch (error) {
         res.status(400).send(error)
     }
 }
-export const deleteProfile=async (req,res) => {
-    try {  
-        const {password}=req.body;
-        const user =await UserModel.findById(req.user._id).populate('postids')
-        if (password!==user.password) {
-            return 
+export const deleteProfile = async (req, res) => {
+    try {
+        const { password } = req.body;
+        const user = await UserModel.findById(req.user._id).populate('postids')
+        if (password !== user.password) {
+            return
         }
         await user.deleteOne()
-        res.clearCookie("token",{
-            httpOnly:true,
-            secure:true,
-            sameSite:"None",
+        res.clearCookie("token", {
+            httpOnly: true,
+            secure: true,
+            sameSite: "None",
         })
-        await PostModel.deleteMany({_id:{$in:user.postids}})
-        await CommentModel.deleteMany({_id:{$in:user.commentids}})
-        res.status(200).json({delete:true})
+        await PostModel.deleteMany({ _id: { $in: user.postids } })
+        await CommentModel.deleteMany({ _id: { $in: user.commentids } })
+        res.status(200).json({ delete: true })
     } catch (error) {
-        res.status(500).send({error:error,delete:false})
+        res.status(500).send({ error: error, delete: false })
+    }
+}
+
+// update profile section
+export const getUserDetail = (req, res) => {
+    res.send(req.user)
+}
+
+// updating   profile page
+export const updateUserDetail = async (req, res) => {
+    try {
+        const userid = req.user._id;
+        let user = await UserModel.updateOne({ _id: userid }, { $set: (req.body) })
+        if (user.modifiedCount === 0) {
+            return res.status(404).json({ message: "User not found or bio unchanged" });
+        }
+        res.status(200).json({ message: "Bio updated successfully", result: user });
+    } catch (error) {
+        res.status(500).json({ message: "server not responding" })
     }
 }

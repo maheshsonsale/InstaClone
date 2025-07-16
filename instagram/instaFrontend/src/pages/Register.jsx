@@ -28,10 +28,9 @@ const Register = () => {
                     setMessege("Account Already Exist Please Login")
                 }
             }).catch()
-        } catch (error) {
+        } catch (err) {
+            console.log(err);
             setMessege("something went wrong")
-            console.log(error);
-
         }
         // Add your backend registration logic here
     };

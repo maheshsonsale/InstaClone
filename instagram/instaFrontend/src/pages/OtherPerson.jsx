@@ -5,7 +5,8 @@ import '../css/ProfilePage.css';
 
 const OtherPerson = () => {
     const location = useLocation()
-    const passedData = location.state?.userdata;
+    const passedData = location.state?.userdata;// receving user detail from side profile 
+    
     const [fullname, setFullname] = useState('');
     const [username, setUsername] = useState('');
     const [bio, setBio] = useState('');
@@ -22,7 +23,7 @@ const OtherPerson = () => {
         setFollowers(passedData.followers)
         setFollowing(passedData.following)
         setPic(passedData.pic)
-        setPosts(passedData.postsid);
+        setPosts(passedData.postids);
     }, [passedData])
     return (
         <div className="profile-container">

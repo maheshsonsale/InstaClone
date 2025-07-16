@@ -13,9 +13,9 @@ const SideProfile = () => {
         async function sideprofile() {
             try {
                 const response = await axios.get('http://localhost:5000/sideprofile', { withCredentials: true })
-                setUsername(response.data.username)
-                setFullname(response.data.fullname)
-                setPic(response.data.pic)
+                setUsername(response.data.User.username)
+                setFullname(response.data.User.fullname)
+                setPic(response.data.User.pic)
                 setOtherUsers(response.data.otherUsers)
 
             } catch (error) {
@@ -48,7 +48,9 @@ const SideProfile = () => {
     }
 
     function renderOtherProfile(frontuser) {
-        navigate(`/home/otherperson/${frontuser.username}`, {
+        // console.log(frontuser);
+        
+        navigate(`/home/otherperson/:${frontuser.username}`, {
             state: {
                 userdata: frontuser
             }

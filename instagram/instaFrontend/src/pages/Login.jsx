@@ -20,8 +20,6 @@ const Login = () => {
                 }).catch(()=>{
                     setMessege("Invalid Email Or Password")
                 })
-        
-
     };
 
     return (
