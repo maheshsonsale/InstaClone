@@ -1,25 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import '../css/FeedPage.css';
+import { useNavigate } from 'react-router-dom';
 //************************************************************************************************************** */
 const FeedPage = () => {
+    const navigate = useNavigate()
     const [posts, setPosts] = useState([]);
+    const [loggedInUser, setLoggedInUser] = useState('')
     const [activeCommentPostId, setActiveCommentPostId] = useState(null); // for comment button toggle
     const [comments, setComments] = useState({});  // this will store comment data as obj
     //*******************************************************************************************************************
     // fetching  all posts of all users from mongodb
     useEffect(() => {
-        const fetchPosts = async () => {
-            try {
-                const response = await axios.get('http://localhost:5000/allposts', {
-                    withCredentials: true,
-                });
-                setPosts(response.data);
-            } catch (error) {
-                console.error('Error fetching posts:', error);
-            }
-        };
-        fetchPosts();
+        axios.get('http://localhost:5000/allposts', {
+            withCredentials: true,
+        }).then((res) => {
+            setPosts(res?.data?.modifiedPosts);
+            setLoggedInUser(res?.data?.userid)
+        }).catch(() => {
+            console.error('Error fetching posts:');
+        })
     });
     // *******************************************like handler function****************************************
     function handleLike(postid) {
@@ -44,6 +44,18 @@ const FeedPage = () => {
         })
         setComments((prev) => ({ ...prev, [postid]: "" }))
     }
+
+    function renderOtherUser(user) {
+        if (user._id == loggedInUser) {
+            navigate('/home/profile')
+        } else {
+            navigate(`/home/otherperson/:${user?.username}`, {
+                state: {
+                    userdata: user
+                }
+            })
+        }
+    }
     //******************************************** JSX ****************************************************** */
     return (
         <div className="feed-container">
@@ -54,8 +66,8 @@ const FeedPage = () => {
                 posts.map((post) => (
                     <div className="post-card" key={post._id}>
                         <div className="post-header">
-                            <div className='post-pic-name'>
-                                <img src={post.userid?.pic || `https://avatars.dicebear.com/api/identicon/${Math.random().toString(36).substring(7)}.svg`} alt="User"
+                            <div className='post-pic-name' onClick={() => { renderOtherUser(post?.userid) }}>
+                                <img src={post?.userid?.pic || `https://avatars.dicebear.com/api/identicon/${Math.random().toString(36).substring(7)}.svg`} alt="User"
                                     className="post-profile-pic" />
                                 <span className="post-username">{post.userid?.username || "Anonymous"}</span>
                             </div>
@@ -65,7 +77,7 @@ const FeedPage = () => {
                             <img
                                 src={post.image}
                                 alt="Image"
-                                style={{ width: "100%", height: "500px", borderRadius: "10px", margin: "10px 0" }} />
+                                style={{ width: "100%", height: "480px", borderRadius: "10px", margin: "5px 0" }} />
                         )}
                         <div className="post-content">{post.content}</div>
                         <div className="post-actions">
@@ -76,17 +88,16 @@ const FeedPage = () => {
                             </div>
                             <div className='middle-btn'>
                                 <button className="action-btn" onClick={() => handleCommentClick(post._id)}>
-                                    💬 {activeCommentPostId === post._id ? 'Hide Comments' : 'Show Comments'}
-                                </button>
+                                    💬 {activeCommentPostId === post._id ? 'Hide ' : 'View all'} {post?.commentids.length} Comments</button>
                             </div>
                         </div>
                         {activeCommentPostId === post._id && (
                             <div className='comment-list'>
                                 {(post.commentids || []).map((comment) => (
-                                    <div className="comment" key={comment._id}>
-                                        <img className="comment-profilepic" src={post.userid?.pic || `https://avatars.dicebear.com/api/identicon/${Math.random().toString(36).substring(7)}.svg`} alt="User"
-                                             />
-                                        <span className="post-username">{post.userid?.username || "Anonymous"}</span>
+                                    <div className="comment" key={comment._id} onClick={() => { renderOtherUser(comment?.sender) }}>
+                                        <img className="comment-profilepic" src={comment?.sender?.pic || `https://avatars.dicebear.com/api/identicon/${Math.random().toString(36).substring(7)}.svg`} alt="User"
+                                        />
+                                        <span className="post-username">{comment?.sender?.username || "Anonymous"}</span>
                                         <p>{comment.comments}</p>
                                     </div>
                                 ))}

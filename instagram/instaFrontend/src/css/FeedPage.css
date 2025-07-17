@@ -7,152 +7,255 @@
     --accent-hover: #297bff;
     --border: #2a2a2a;
     --comment-bg: #2b2b2b;
+    --highlight: #30e15c;
 }
 
 body {
     background-color: var(--bg-main);
     color: var(--text-primary);
-    font-family: 'Segoe UI', sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
 }
 
+/* === Feed Container === */
 .feed-container {
     max-width: 600px;
-    margin: 40px auto;
-    padding: 10px;
+    margin: 50px auto;
+    padding: 0 15px;
+    animation: fadeIn 0.6s ease-in-out;
 }
 
+/* === Header === */
 .feed-header {
-    font-size: 26px;
-    font-weight: 600;
-    margin-bottom: 25px;
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 30px;
     text-align: center;
-    color: var(--accent);
+    background: linear-gradient(to right, #feda75, #fa7e1e, #d62976, #4f5bd5);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
+/* === No Posts Message === */
 .no-posts {
     text-align: center;
     font-size: 18px;
     color: var(--text-secondary);
+    margin-top: 30px;
 }
 
+
+/* === Post Card === */
 .post-card {
     background-color: var(--bg-card);
     border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 18px;
-    margin-bottom: 22px;
-    box-shadow: 0 0 10px rgba(78, 158, 255, 0.05);
-    transition: box-shadow 0.3s;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 24px;
+    box-shadow: 0 5px 15px rgba(78, 158, 255, 0.05);
+    transition: all 0.3s ease;
+    overflow: hidden;
 }
 
 .post-card:hover {
-    box-shadow: 0 0 12px rgba(78, 158, 255, 0.12);
+    box-shadow: 0 0 18px rgba(46, 46, 46, 0.18);
+    transform: translateY(-2px);
 }
 
+/* === Post Header === */
 .post-header {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     font-size: 14px;
-    color: var(--text-secondary);
     margin-bottom: 10px;
+    flex-wrap: wrap;
+    gap: 8px;
+    color: var(--text-secondary);
 }
-.post-pic-name{
+
+.post-pic-name {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
 }
+
 .post-profile-pic {
-    width: 40px;
-    height: 40px;
+    width: 42px;
+    height: 42px;
     border-radius: 50%;
-    border: 2px solid #30e15c;
+    border: 2px solid var(--highlight);
+    object-fit: cover;
+    flex-shrink: 0;
     cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.post-profile-pic:hover {
+    transform: scale(1.05);
 }
 
 .post-username {
     font-weight: 600;
     color: var(--text-primary);
     cursor: pointer;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 
 .post-time {
     font-style: italic;
     color: var(--text-secondary);
+    font-size: 13px;
+    text-align: right;
 }
 
+/* === Content === */
 .post-content {
     font-size: 16px;
-    margin: 10px 0;
+    margin: 12px 0;
     color: var(--text-primary);
+    line-height: 1.5;
+    word-wrap: break-word;
 }
 
+/* === Actions (like, comment, etc.) === */
 .post-actions {
     display: flex;
-    gap: 14px;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 10px;
 }
 
 .action-btn {
-    padding: 6px 14px;
+    padding: 7px 16px;
     border: 1px solid var(--border);
     background-color: transparent;
     color: var(--text-secondary);
     border-radius: 20px;
     cursor: pointer;
     font-size: 14px;
-    transition: all 0.2s ease-in-out;
+    transition: all 0.3s ease;
 }
 
 .action-btn:hover {
     background-color: var(--accent);
     color: #fff;
     border-color: var(--accent);
-    box-shadow: 0 0 8px rgba(78, 158, 255, 0.4);
+    box-shadow: 0 0 10px rgba(78, 158, 255, 0.4);
 }
 
+/* === Comment Input === */
 .comment-input {
     width: 100%;
-    padding: 10px 14px;
+    padding: 10px 15px;
     font-size: 14px;
     border: 1px solid var(--border);
     border-radius: 20px;
     background-color: var(--bg-main);
     color: var(--text-primary);
     outline: none;
-    margin: 10px 0;
-    transition: border-color 0.2s;
+    margin-top: 12px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .comment-input:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 5px rgba(78, 158, 255, 0.4);
+    box-shadow: 0 0 6px rgba(78, 158, 255, 0.4);
 }
 
+/* === Comment List === */
 .comment-list {
-    width: 80%;
-    margin-top: 10px;
+    margin-top: 14px;
     background: var(--comment-bg);
-    border-radius: 8px;
-    padding: 10px;
-    max-height: 170px;
+    border-radius: 12px;
+    padding: 12px;
+    max-height: 200px;
     overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent) transparent;
 }
 
+.comment-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.comment-list::-webkit-scrollbar-thumb {
+    background-color: var(--accent);
+    border-radius: 6px;
+}
+
+/* === Comment === */
 .comment {
     background: var(--bg-main);
     border: 1px solid var(--border);
     padding: 8px 12px;
-    margin-bottom: 8px;
-    border-radius: 8px;
+    margin-bottom: 10px;
+    border-radius: 10px;
     font-size: 14px;
     color: var(--text-primary);
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
 }
-.comment-profilepic{
-     width: 30px;
+
+.comment-profilepic {
+    width: 30px;
     height: 30px;
     border-radius: 50%;
-    border: 2px solid #30e15c;
+    border: 2px solid var(--highlight);
+    object-fit: cover;
     cursor: pointer;
+    flex-shrink: 0;
+}
+
+/* === Animation === */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* === Responsive === */
+@media (max-width: 768px) {
+    .feed-container {
+        padding: 0 10px;
+    }
+
+    .post-card {
+        padding: 16px;
+    }
+
+    .post-username {
+        font-size: 14px;
+    }
+
+    .post-content {
+        font-size: 15px;
+    }
+
+    .comment-input {
+        font-size: 13px;
+        padding: 8px 12px;
+    }
+
+    .action-btn {
+        font-size: 13px;
+        padding: 6px 12px;
+    }
+
+    .feed-header {
+        font-size: 24px;
+    }
 }

@@ -1,8 +1,11 @@
 import axios from 'axios'
+import { useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 
 import '../css/SearchPage.css'
 function SearchPage() {
+    const navigate = useNavigate()
+    const [loggedInUser, setLoggedInUser] = useState('')
     const [search, setSearch] = useState('')
     const [profiles, setProfiles] = useState([])
 
@@ -10,7 +13,9 @@ function SearchPage() {
     useEffect(() => {
         const serchHandler = () => {
             axios.post("http://localhost:5000/search", { search: search }, { withCredentials: true }).then((res) => {
-                setProfiles(res.data);
+                setProfiles(res.data.users);
+                setLoggedInUser(res.data.logUserId)
+                
             }).catch((error) => {
                 console.log(error);
             })
@@ -27,7 +32,18 @@ function SearchPage() {
         return () => clearTimeout(delayDebounce); // cleanup on next render
     }, [search]);
 
-    
+
+    function renderOtherProfile(frontuser) {
+        if (frontuser._id == loggedInUser) {
+            navigate('/home/profile')
+        } else {
+            navigate(`/home/otherperson/:${frontuser.username}`, {
+                state: {
+                    userdata: frontuser
+                }
+            })
+        }
+    }
     return (
         <div className='main-container'>
             <div className='search-container'>
@@ -39,8 +55,8 @@ function SearchPage() {
                 <div className='profiles-container'>
                     {profiles && (
                         profiles.map((profile) => (
-                            
-                            <div key={profile._id} >
+
+                            <div key={profile._id} onClick={() => { renderOtherProfile(profile) }} style={{ cursor: 'pointer' }} >
                                 <img
                                     src={profile.pic ? profile.pic : "https://i.pravatar.cc/150?img=10"}
                                     alt="User"
@@ -51,7 +67,7 @@ function SearchPage() {
                                     <p id='fullname'>{profile.fullname}</p>
                                 </div>
                             </div>
-                            
+
                         ))
                     )}
                 </div>

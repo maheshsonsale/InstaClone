@@ -15,7 +15,7 @@ const ProfilePage = () => {
     const [followers, setFollowers] = useState(0)
     const [following, setFollowing] = useState(0)
     const [imageUrl, setImageUrl] = useState()
-const [showPopup, setShowPopup] = useState(false);
+    const [showPopup, setShowPopup] = useState(false);
 
 
     // Fetch profile data
@@ -38,7 +38,7 @@ const [showPopup, setShowPopup] = useState(false);
         fetchProfile();
     });
 
-    function showPop(){
+    function showPop() {
         setShowPopup(true)
     }
 
@@ -72,15 +72,15 @@ const [showPopup, setShowPopup] = useState(false);
         const password = prompt("Please enter your password")
         axios.delete('http://localhost:5000/deleteProfile', { data: { password: password }, withCredentials: true }).then(() => {
             navigate('/')
-        }).catch((error)=>{
-            if (error.response.status==401) {
+        }).catch((error) => {
+            if (error.response.status == 401) {
                 return
             }
         })
     }
     return (
         <div className="profile-container">
-            {showPopup &&(<PopupUpdateProfile close={()=>setShowPopup(false)}/>)}
+            {showPopup && (<PopupUpdateProfile close={() => setShowPopup(false)} />)}
             <div className="profile-header">
                 <img className="profile-dp" src={imageUrl ? imageUrl : "https://i.pravatar.cc/150?img=10"} alt="No Image Found" onClick={() => picUploadRef.current.click()} style={{ cursor: "pointer" }} />
 
@@ -88,22 +88,21 @@ const [showPopup, setShowPopup] = useState(false);
                     <div className="username-section">
                         <h2>{username}</h2>
                         <input type='file' className="btn" ref={picUploadRef} onChange={handlePic} style={{ display: "none" }} />
+                        <div className="profile-stats">
+                            <button onClick={showPop}>Edite Profile</button>
+                            <p style={{ cursor: 'pointer' }} onClick={() => { profileDelete() }}>⚙️</p>
 
-
-
+                        </div>
                     </div>
-
                     <div className="profile-stats">
                         <span><strong>{posts.length}</strong> posts</span>
                         <span><strong>{followers.length}</strong> followers</span>
                         <span><strong>{following.length}</strong> following</span>
-                        <button style={{ cursor: 'pointer' }} onClick={() => { profileDelete() }}>Delete Profile</button>
                     </div>
 
                     <div className="bio">
                         <strong>{fullname}</strong><br />
-                        <p>{bio}<span onClick={showPop} style={{ cursor: 'pointer', color: '#007bff', fontSize: '0.9rem', padding: '0 15px', textDecoration: 'underline' }}>Edite Profile</span></p>
-
+                        <p>{bio}</p>
                     </div>
                 </div>
             </div>

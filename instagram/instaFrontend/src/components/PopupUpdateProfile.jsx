@@ -7,7 +7,6 @@ function PopupUpdateProfile({ close }) {
 
   const [fullname, setFullname] = useState('')
   const [username, setUsername] = useState('')
-  const [email, setEmail] = useState('')
   const [mobile, setMobile] = useState('')
   const [bio, setBio] = useState('')
 
@@ -17,7 +16,6 @@ function PopupUpdateProfile({ close }) {
     axios.get('http://localhost:5000/getUserDetail',{withCredentials:true}).then((res) => {
       setFullname(res.data.fullname || '')
       setUsername(res.data.username || '')
-      setEmail(res.data.email || '')
       setMobile(res.data.mobile || '')
       setBio(res.data.bio || '')
 
@@ -29,8 +27,9 @@ function PopupUpdateProfile({ close }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     try {
-      axios.patch('http://localhost:5000/updateUserDetail', { fullname, username, email, mobile, bio }, { withCredentials: true })
+      axios.patch('http://localhost:5000/updateUserDetail', { fullname, username, mobile, bio }, { withCredentials: true })
       close()
+      alert("detail updated")
     } catch (error) {
       console.log(error.message);
     }
@@ -72,18 +71,6 @@ function PopupUpdateProfile({ close }) {
                 name="biodata"
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-
-              />
-            </div>
-
-            <div className="popup-form-field" id="field-mobile">
-              <label htmlFor="email">Email:</label>
-              <input
-                type="tel"
-                id="email"
-                name="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
 
               />
             </div>

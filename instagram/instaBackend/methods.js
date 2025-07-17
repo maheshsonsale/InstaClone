@@ -117,6 +117,8 @@ export const allposts = async (req, res) => {
         const posts = await PostModel.find()
             .sort({ createdAt: -1 })
             .populate("userid").populate({ path: 'commentids', populate: { path: 'sender', model: 'userDetail' } });
+        // console.log(posts);
+        
         const modifiedPosts = posts.map((post) => {
             const isLiked = post.likes.includes(userid);
             return {
@@ -126,13 +128,19 @@ export const allposts = async (req, res) => {
             };
         });
 
-        res.status(200).json(modifiedPosts);
+        res.status(200).json({modifiedPosts:modifiedPosts,userid:userid});
     } catch (error) {
         console.error("Like/Unlike logic error:", error);
         res.status(500).json({ message: "Internal Server Error" });
     }
 }
 
+// loading all comments in post
+export const otherPerson = async (req, res) => {
+    const { userid } = req.body;
+    const user = await UserModel.findById(userid).populate('postids')
+    res.send(user)
+}
 
 
 export const sideprofile = async (req, res) => {
@@ -187,12 +195,6 @@ export const comments = async (req, res) => {
     }
 }
 
-// loading all comments in post
-export const loadAllComments = async (req, res) => {
-    const { postid } = req.body;
-    const postComments = await CommentModel.find({ postid: postid })
-    res.send(postComments)
-}
 
 // deleting post only admin
 export const deletepost = async (req, res) => {
@@ -253,12 +255,13 @@ export const editPic = async (req, res) => {
 // search box to find all users
 export const search = async (req, res) => {
     try {
+        const logUserId=req.user._id;
         const { search } = req.body;
         const users = await UserModel.find({
             $or: [{ username: { $regex: search, $options: 'i' } },
             { fullname: { $regex: search, $options: 'i' } }]
         }).select('-password')
-        res.status(200).send(users)
+        res.status(200).json({users:users,logUserId:logUserId})
     } catch (error) {
         res.status(400).send(error)
     }

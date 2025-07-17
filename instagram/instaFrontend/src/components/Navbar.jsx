@@ -28,16 +28,16 @@ const Navbar = () => {
                     <NavLink to="search">🔍 Search</NavLink>
                 </li>
                 <li>
-                    <NavLink to="createpost">🧭 Explore</NavLink>
+                    <NavLink to="createpost">🧭 Explore ___</NavLink>
                 </li>
                 <li>
-                    <NavLink to="createpost">🎞️ Reels</NavLink>
+                    <NavLink to="createpost">🎞️ Reels ___</NavLink>
                 </li>
                 <li>
-                    <NavLink to="createpost">💌 Messages</NavLink>
+                    <NavLink to="chat">💌 Messages</NavLink>
                 </li>
                 <li>
-                    <NavLink to="createpost">🔔 Notifications</NavLink>
+                    <NavLink to="createpost">🔔 Notifications ___</NavLink>
                 </li>
                 <li>
                     <NavLink to="createpost">➕ Create</NavLink>
@@ -46,7 +46,7 @@ const Navbar = () => {
                     <NavLink to="profile">👤 Profile</NavLink>
                 </li>
                 <li>
-                    <NavLink to="feedpage">⚙️ More</NavLink>
+                    <NavLink to="feedpage">⚙️ More ___</NavLink>
                 </li>
             </ul>
             <button onClick={handleLogout} className="logout-button">Logout</button>

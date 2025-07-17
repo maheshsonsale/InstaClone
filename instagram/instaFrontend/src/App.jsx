@@ -9,6 +9,7 @@ import './App.css'
 import { Routes, Route } from "react-router-dom"
 import SearchPage from "./pages/SearchPage"
 import ProtectiveRoute from "./components/ProtectiveRoute"
+import Chat from "./pages/Chat"
 
 function App() {
 
@@ -22,6 +23,7 @@ function App() {
           <Route path="otherperson/:id" element={<OtherPerson />} />
           <Route path="createpost" element={<CreatePost />} />
           <Route path="feedpage" element={<FeedPage />} />
+          <Route path="chat" element={<Chat />} />
           <Route path="search" element={<SearchPage />} />
           <Route index  element={<FeedPage />} />
         </Route>
