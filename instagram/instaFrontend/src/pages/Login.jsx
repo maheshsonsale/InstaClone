@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 // import HomePage from './HomePage';
 import axios from 'axios';
 import '../css/Login.css';
+import { BackPath } from '../components/BackendPath';
 
 const Login = () => {
     const navigate=useNavigate()
@@ -14,7 +15,7 @@ const Login = () => {
     const handleLogin = async(e) => {
         e.preventDefault();
         
-            axios.post('http://localhost:5000/login',{email,password},{withCredentials:true}).then(()=>{
+            axios.post(`${BackPath}/login`,{email,password},{withCredentials:true}).then(()=>{
                     setMessege("Login Success")
                     navigate('/home')
                 }).catch(()=>{

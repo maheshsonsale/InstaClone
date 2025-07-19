@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import '../css/FeedPage.css';
 import { useNavigate } from 'react-router-dom';
+import { BackPath } from '../components/BackendPath';
 //************************************************************************************************************** */
 const FeedPage = () => {
     const navigate = useNavigate()
@@ -12,7 +13,7 @@ const FeedPage = () => {
     //*******************************************************************************************************************
     // fetching  all posts of all users from mongodb
     useEffect(() => {
-        axios.get('http://localhost:5000/allposts', {
+        axios.get(`${BackPath}/allposts`, {
             withCredentials: true,
         }).then((res) => {
             setPosts(res?.data?.modifiedPosts);
@@ -23,7 +24,7 @@ const FeedPage = () => {
     });
     // *******************************************like handler function****************************************
     function handleLike(postid) {
-        axios.put('http://localhost:5000/likes', { postid }, { withCredentials: true, }).then().catch((err) => {
+        axios.put(`${BackPath}/likes`, { postid }, { withCredentials: true, }).then().catch((err) => {
             console.error('Error fetching posts:', err);
         })
     }
@@ -39,7 +40,7 @@ const FeedPage = () => {
 
     // *********************************post the  comment in *****************************
     function postcomment(postid) {
-        axios.post('http://localhost:5000/comments', { postid: postid, comments: comments[postid] }, {
+        axios.post(`${BackPath}/comments`, { postid: postid, comments: comments[postid] }, {
             withCredentials: true,
         })
         setComments((prev) => ({ ...prev, [postid]: "" }))

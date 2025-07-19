@@ -1,8 +1,28 @@
-// src/components/ChatPage.jsx
+import axios from 'axios'
 import React from "react";
 import "../css/Chat.css";
-
+import { useEffect } from "react";
+import { BackPath } from '../components/BackendPath'
+import { useState } from 'react';
 const Chat = () => {
+    const [username,setUsername]=useState('')
+    const [pic,setPic]=useState('')
+const [users,setUsers]=useState([])
+    useEffect(() => {
+        axios.post(`${BackPath}/chatUser`, {}, { withCredentials: true }).then((res) => {
+            console.log(res.data);
+            
+            setUsers(res.data.following)
+        }).catch((err) => {
+            console.log(err);
+        })
+    },[])
+
+
+    function shwUser(name,pic){
+        setUsername(name)
+        setPic(pic)
+    }
     return (
         <div className="chat-page">
             {/* Sidebar */}
@@ -27,16 +47,18 @@ const Chat = () => {
                 </div>
 
                 <div className="user-list">
-                    <div className="user-card">
-                        <img src="https://i.pravatar.cc/40" alt="user" />
+                    {users.map((user)=>(
+                    <div className="user-card" key={user._id} onClick={()=>{shwUser(user.fullname,user.pic)}}>
+                        <img src={user?.pic} alt="user" />
                         <div className="user-info">
                             <div className="user-header">
-                                <h3>username</h3>
+                                <h3>{user?.username}</h3>
                                 <span className="time">11:45</span>
                             </div>
                             <p className="last-message">the content written by the last</p>
                         </div>
                     </div>
+                    ))}
                 </div>
             </div>
 
@@ -44,8 +66,8 @@ const Chat = () => {
             <div className="chat-area">
                 <div className="chat-header">
                     <div className="chat-user">
-                        <img src="https://i.pravatar.cc/40" alt="person" />
-                        <h3>name of person</h3>
+                        <img src={pic} alt="person" />
+                        <h3>{username}</h3>
                     </div>
                     <div className="chat-icons">
                         <span>📞</span>

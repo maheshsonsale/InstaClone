@@ -2,45 +2,41 @@ import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import '../css/SideProfile.css';
 import axios from 'axios';
+import { BackPath } from '../components/BackendPath';
 const SideProfile = () => {
     const navigate = useNavigate()
     const [username, setUsername] = useState('')
     const [fullname, setFullname] = useState('')
-    const [pic,setPic]=useState('')
+    const [pic, setPic] = useState('')
     const [otherUsers, setOtherUsers] = useState([])
 
     useEffect(() => {
         async function sideprofile() {
             try {
-                const response = await axios.get('http://localhost:5000/sideprofile', { withCredentials: true })
+                const response = await axios.get(`${BackPath}/sideprofile`, { withCredentials: true })
                 setUsername(response.data.User.username)
                 setFullname(response.data.User.fullname)
                 setPic(response.data.User.pic)
                 setOtherUsers(response.data.otherUsers)
-
             } catch (error) {
                 console.log(error);
             }
         }
-
         sideprofile()
     })
 
     function handleFollowers(frontuserid) {
         try {
-            axios.post('http://localhost:5000/followers', { frontuserid }, { withCredentials: true })
-
+            axios.post(`${BackPath}/followers`, { frontuserid }, { withCredentials: true })
             console.log("navigate");
-
         } catch (error) {
             console.log(error);
-
         }
     }
 
     function following(frontuserid) {
         try {
-            axios.post('http://localhost:5000/following', { frontuserid }, { withCredentials: true })
+            axios.post(`${BackPath}/following`, { frontuserid }, { withCredentials: true })
         } catch (error) {
             console.log(error);
 
@@ -48,14 +44,11 @@ const SideProfile = () => {
     }
 
     function renderOtherProfile(frontuser) {
-        // console.log(frontuser);
-        
         navigate(`/home/otherperson/:${frontuser.username}`, {
             state: {
                 userdata: frontuser
             }
         })
-
     }
 
 
@@ -64,11 +57,8 @@ const SideProfile = () => {
             <div className="profile-top">
                 <NavLink to="profile">
                     <div style={{ display: 'flex', gap: '10px' }}>
-                        <img
-                            src={pic ?pic: "https://i.pravatar.cc/150?img=10"}
-                            alt="User"
-                            className="profile-pic"
-                        />
+                        <img src={pic ? pic : "https://i.pravatar.cc/150?img=10"}
+                            alt="User" className="profile-pic" />
                         <div>
                             <h2 className="username">{username}</h2>
                             <p id='fullname'>{fullname}</p>

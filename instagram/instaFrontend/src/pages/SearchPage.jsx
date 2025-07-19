@@ -1,8 +1,9 @@
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-
 import '../css/SearchPage.css'
+import { BackPath } from '../components/BackendPath'
+
 function SearchPage() {
     const navigate = useNavigate()
     const [loggedInUser, setLoggedInUser] = useState('')
@@ -12,10 +13,9 @@ function SearchPage() {
 
     useEffect(() => {
         const serchHandler = () => {
-            axios.post("http://localhost:5000/search", { search: search }, { withCredentials: true }).then((res) => {
+            axios.post(`${BackPath}/search`, { search: search }, { withCredentials: true }).then((res) => {
                 setProfiles(res.data.users);
                 setLoggedInUser(res.data.logUserId)
-                
             }).catch((error) => {
                 console.log(error);
             })

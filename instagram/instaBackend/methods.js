@@ -109,7 +109,6 @@ export const profile = async (req, res) => {
 }
 
 
-
 // show all post in feed 
 export const allposts = async (req, res) => {
     try {
@@ -304,4 +303,14 @@ export const updateUserDetail = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: "server not responding" })
     }
+}
+
+export const chatUser=async (req,res) => {
+    try {
+        const user=await UserModel.findById(req.user._id).populate('following')
+        res.status(200).send(user)
+    } catch (error) {
+        res.status(500).send(error)
+    }
+    
 }

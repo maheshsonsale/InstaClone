@@ -2,6 +2,7 @@ import axios from 'axios'
 import { useLocation } from 'react-router-dom';
 import React, { useEffect, useState } from 'react';
 import '../css/ProfilePage.css';
+import { BackPath } from '../components/BackendPath';
 
 const OtherPerson = () => {
     const location = useLocation()
@@ -11,7 +12,7 @@ const OtherPerson = () => {
 
 
     useEffect(() => {
-        axios.post("http://localhost:5000/otherPerson",{userid:userid},{withCredentials:true}).then((res)=>{
+        axios.post(`${BackPath}/otherPerson`,{userid:userid},{withCredentials:true}).then((res)=>{
             setUser(res.data)            
         })
     })

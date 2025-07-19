@@ -21,7 +21,7 @@ rout.post('/search',AuthMiddleware,method.search)
 rout.delete('/deleteProfile',AuthMiddleware,method.deleteProfile)
 rout.get('/getUserDetail',AuthMiddleware,method.getUserDetail)
 rout.patch('/updateUserDetail',AuthMiddleware,method.updateUserDetail)    // 
-
+rout.post('/chatUser',AuthMiddleware,method.chatUser)    // 
 rout.post('/otherPerson',method.otherPerson)
 
 

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import "../css/CreatePost.css"; // Optional for styling
-
+import { BackPath } from "../components/BackendPath";
 function CreatePost() {
     const [content, setContent] = useState("");
     const [message, setMessage] = useState("");
@@ -17,7 +17,7 @@ function CreatePost() {
         }
         setMessage("")
         try {
-            axios.post("http://localhost:5000/createpost", { content,image:image }, { withCredentials: true });
+            axios.post(`${BackPath}/createpost`, { content,image:image }, { withCredentials: true });
             setContent("")
             setMessage("✅ Post created successfully!");
         } catch (error) {

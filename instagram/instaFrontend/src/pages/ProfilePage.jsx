@@ -3,7 +3,7 @@ import PopupUpdateProfile from '../components/PopupUpdateProfile';
 import React, { useEffect, useState, useRef } from 'react';
 import '../css/ProfilePage.css';
 import { useNavigate } from 'react-router-dom';
-
+import { BackPath } from '../components/BackendPath';
 
 const ProfilePage = () => {
     const navigate = useNavigate();
@@ -22,7 +22,7 @@ const ProfilePage = () => {
     useEffect(() => {
         async function fetchProfile() {
             try {
-                const response = await axios.get('http://localhost:5000/profile', { withCredentials: true });
+                const response = await axios.get(`${BackPath}/profile`, { withCredentials: true });
                 setFullname(response.data.fullname);
                 setUsername(response.data.username);
                 setBio(response.data.bio);
@@ -45,7 +45,7 @@ const ProfilePage = () => {
     async function deletepost(postid) {
         try {
             await axios.post(
-                'http://localhost:5000/deletepost', { postid },
+                `${BackPath}/deletepost`, { postid },
                 { withCredentials: true }
             );
         } catch (error) {
@@ -62,7 +62,7 @@ const ProfilePage = () => {
         data.append("cloud_name", "dzmmp468g")
         try {
             const res = await axios.post("https://api.cloudinary.com/v1_1/dzmmp468g/image/upload", data);
-            await axios.post("http://localhost:5000/editPic", { imageUrl: res.data.secure_url }, { withCredentials: true })
+            await axios.post(`${BackPath}/editPic`, { imageUrl: res.data.secure_url }, { withCredentials: true })
         } catch (error) {
             console.log("Upload failed:", error);
         }
@@ -90,6 +90,7 @@ const ProfilePage = () => {
                         <input type='file' className="btn" ref={picUploadRef} onChange={handlePic} style={{ display: "none" }} />
                         <div className="profile-stats">
                             <button onClick={showPop}>Edite Profile</button>
+                            <button>View Archiev</button>
                             <p style={{ cursor: 'pointer' }} onClick={() => { profileDelete() }}>⚙️</p>
 
                         </div>
