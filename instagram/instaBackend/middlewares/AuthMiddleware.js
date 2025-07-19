@@ -8,7 +8,7 @@ export default async function AuthMiddleware(req, res, next) {
         if (!token) {
             return res.status(401).json({ message: "Unuthorised or invalid token" })
         }
-        const decode = jwt.verify(token, "SECRET_KEY");
+        const decode = jwt.verify(token,process.env.JWT_SECRET_KEY);
         const userid = decode.id;
         const user = await UserModel.findById(userid)
         if (!user) {

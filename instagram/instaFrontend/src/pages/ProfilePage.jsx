@@ -4,6 +4,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import '../css/ProfilePage.css';
 import { useNavigate } from 'react-router-dom';
 import { BackPath } from '../components/BackendPath';
+import Posts from '../components/Posts';
 
 const ProfilePage = () => {
     const navigate = useNavigate();
@@ -11,12 +12,17 @@ const ProfilePage = () => {
     const [fullname, setFullname] = useState('');
     const [username, setUsername] = useState('');
     const [bio, setBio] = useState('');
-    const [posts, setPosts] = useState([]);
     const [followers, setFollowers] = useState(0)
     const [following, setFollowing] = useState(0)
     const [imageUrl, setImageUrl] = useState()
     const [showPopup, setShowPopup] = useState(false);
 
+
+
+    const [posts, setPosts] = useState([]);
+    const [loggedInUser, setLoggedInUser] = useState('');
+    const [activeCommentPostId, setActiveCommentPostId] = useState(null);
+    const [comments, setComments] = useState({});
 
     // Fetch profile data
     useEffect(() => {
@@ -38,20 +44,21 @@ const ProfilePage = () => {
         fetchProfile();
     });
 
+
     function showPop() {
         setShowPopup(true)
     }
 
-    async function deletepost(postid) {
-        try {
-            await axios.post(
-                `${BackPath}/deletepost`, { postid },
-                { withCredentials: true }
-            );
-        } catch (error) {
-            console.log(error);
-        }
-    }
+    // async function deletepost(postid) {
+    //     try {
+    //         await axios.post(
+    //             `${BackPath}/deletepost`, { postid },
+    //             { withCredentials: true }
+    //         );
+    //     } catch (error) {
+    //         console.log(error);
+    //     }
+    // }
     async function handlePic(e) {
         const file = e.target.files[0]
         if (!file) { return }
@@ -65,6 +72,52 @@ const ProfilePage = () => {
             await axios.post(`${BackPath}/editPic`, { imageUrl: res.data.secure_url }, { withCredentials: true })
         } catch (error) {
             console.log("Upload failed:", error);
+        }
+    }
+
+    // post section 
+    useEffect(() => {
+        axios.get(`${BackPath}/allposts`, {
+            withCredentials: true,
+        }).then((res) => {
+            setLoggedInUser(res?.data?.userid)
+        }).catch(() => {
+            console.error('Error fetching posts:');
+        })
+    }, []);
+    // *******************************************like handler function****************************************
+    function handleLike(postid) {
+        axios.put(`${BackPath}/likes`, { postid }, { withCredentials: true, }).then().catch((err) => {
+            console.error('Error fetching posts:', err);
+        })
+    }
+    //********************************** comment input toggler*************************************
+
+    const handleCommentClick = (postId) => {
+        setActiveCommentPostId(prevId => (prevId === postId ? null : postId));
+    };
+    //**********************  when typing in comment box data will be store here as object *****************************
+    const handleCommentChange = (postid, value) => {
+        setComments((prev) => ({ ...prev, [postid]: value }));
+    };
+
+    // *********************************post the  comment in *****************************
+    function postcomment(postid) {
+        axios.post(`${BackPath}/comments`, { postid: postid, comments: comments[postid] }, {
+            withCredentials: true,
+        })
+        setComments((prev) => ({ ...prev, [postid]: "" }))
+    }
+
+    function renderOtherUser(user) {
+        if (user._id == loggedInUser) {
+            navigate('/home/profile')
+        } else {
+            navigate(`/home/otherperson/:${user?.username}`, {
+                state: {
+                    userdata: user
+                }
+            })
         }
     }
 
@@ -111,22 +164,19 @@ const ProfilePage = () => {
             <div className="dashboard-container">
                 <h2 className="dashboard-title">📋 My Posts</h2>
 
-                {posts.length === 0 ? (
-                    <p className="no-posts">No Post Yet....</p>
-                ) : (
-                    <div className="posts-list">
-                        {posts.map((post) => (
-                            <div key={post._id} className="post-card">
-                                <p className='edite' onClick={() => deletepost(post._id)}>Delete</p>
-                                <p className="post-content">{post.content}</p>
-                                <small className="post-meta">Posted on: {new Date(post.createdAt).toLocaleString()}</small>
-                            </div>
-                        ))}
-                    </div>
-                )}
+                <Posts
+                    posts={posts}
+                    activeCommentPostId={activeCommentPostId}
+                    comments={comments}
+                    renderOtherUser={renderOtherUser}
+                    handleLike={handleLike}
+                    handleCommentClick={handleCommentClick}
+                    handleCommentChange={handleCommentChange}
+                    postcomment={postcomment}
+                />
             </div>
         </div>
-    );
+    )
 };
 
-export default ProfilePage;
+export default ProfilePage

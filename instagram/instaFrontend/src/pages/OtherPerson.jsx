@@ -1,21 +1,81 @@
 import axios from 'axios'
+import { useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 import React, { useEffect, useState } from 'react';
 import '../css/ProfilePage.css';
 import { BackPath } from '../components/BackendPath';
-
+import Posts from '../components/Posts';
 const OtherPerson = () => {
+    const navigate = useNavigate()
     const location = useLocation()
     const userid = location.state?.userdata._id;// receving user detail from side profile 
-    
-    const [user,setUser]=useState('')
+
+    const [user, setUser] = useState('')
+
+    const [posts, setPosts] = useState([]);
+    const [loggedInUser, setLoggedInUser] = useState('');
+    const [activeCommentPostId, setActiveCommentPostId] = useState(null);
+    const [comments, setComments] = useState({});
+
+    useEffect(() => {
+        if (!location.state?.userdata) {
+            navigate('/home'); // or show a 404 fallback
+            return;
+        }
+    }, [location.state?.userdata, navigate]);
 
 
     useEffect(() => {
-        axios.post(`${BackPath}/otherPerson`,{userid:userid},{withCredentials:true}).then((res)=>{
-            setUser(res.data)            
+        axios.post(`${BackPath}/otherPerson`, { userid: userid }, { withCredentials: true }).then((res) => {
+            setUser(res.data)
+            setPosts(res.data.postids)
         })
     })
+    // post section 
+    useEffect(() => {
+        axios.get(`${BackPath}/allposts`, {
+            withCredentials: true,
+        }).then((res) => {
+            setLoggedInUser(res?.data?.userid)
+        }).catch(() => {
+            console.error('Error fetching posts:');
+        })
+    });
+
+    function handleLike(postid) {
+        axios.put(`${BackPath}/likes`, { postid }, { withCredentials: true, }).then().catch((err) => {
+            console.error('Error fetching posts:', err);
+        })
+    }
+    //********************************** comment input toggler*************************************
+
+    const handleCommentClick = (postId) => {
+        setActiveCommentPostId(prevId => (prevId === postId ? null : postId));
+    };
+    //**********************  when typing in comment box data will be store here as object *****************************
+    const handleCommentChange = (postid, value) => {
+        setComments((prev) => ({ ...prev, [postid]: value }));
+    };
+
+    // *********************************post the  comment in *****************************
+    function postcomment(postid) {
+        axios.post(`${BackPath}/comments`, { postid: postid, comments: comments[postid] }, {
+            withCredentials: true,
+        })
+        setComments((prev) => ({ ...prev, [postid]: "" }))
+    }
+
+    function renderOtherUser(user) {
+        if (user._id == loggedInUser) {
+            navigate('/home/profile')
+        } else {
+            navigate(`/home/otherperson/${user?.username}`, {
+                state: {
+                    userdata: user
+                }
+            })
+        }
+    }
 
     return (
         <div className="profile-container">
@@ -28,7 +88,7 @@ const OtherPerson = () => {
                         <button className="btn">Follow</button>
                         <button className="btn">Message</button>
                         <button className="btn">🙂➕</button>
-                        <h2 style={{cursor:'pointer'}}>⋯</h2>
+                        <h2 style={{ cursor: 'pointer' }}>⋯</h2>
 
                     </div>
 
@@ -39,7 +99,7 @@ const OtherPerson = () => {
                     </div>
 
                     <div className="bio">
-                        
+
                         <p>{user.bio}</p>
 
                     </div>
@@ -49,18 +109,16 @@ const OtherPerson = () => {
             <div className="dashboard-container">
                 <h2 className="dashboard-title">{user.username}' posts</h2>
 
-                {user?.postids?.length === 0 ? (
-                    <p className="no-posts">No Post Yet....</p>
-                ) : (
-                    <div className="posts-list">
-                        {user?.postids?.map((post) => (
-                            <div key={post._id} className="post-card">
-                                <p className="post-content">{post?.content}</p>
-                                <small className="post-meta">Posted on: {new Date(post?.createdAt).toLocaleString()}</small>
-                            </div>
-                        ))}
-                    </div>
-                )} 
+                <Posts
+                    posts={posts}
+                    activeCommentPostId={activeCommentPostId}
+                    comments={comments}
+                    renderOtherUser={renderOtherUser}
+                    handleLike={handleLike}
+                    handleCommentClick={handleCommentClick}
+                    handleCommentChange={handleCommentChange}
+                    postcomment={postcomment}
+                />
             </div>
         </div>
     );

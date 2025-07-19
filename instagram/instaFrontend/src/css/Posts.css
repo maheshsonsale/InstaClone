@@ -21,8 +21,8 @@ body {
 
 /* === Feed Container === */
 .feed-container {
-    max-width: 600px;
-    margin: 50px auto;
+    max-width: 650px;
+    margin: 20px auto;
     padding: 0 15px;
     animation: fadeIn 0.6s ease-in-out;
 }

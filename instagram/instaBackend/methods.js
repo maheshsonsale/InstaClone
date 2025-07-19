@@ -1,10 +1,11 @@
 import UserModel from "./schemas/userSchema.js";
 import PostModel from './schemas/postSchema.js';
 import CommentModel from "./schemas/CommentSchema.js";
-import './config/db.js'
+import connectDb from './config/db.js'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
-
+import { populate } from "dotenv";
+connectDb()
 
 
 //  Authentification for redirecting page to login or register
@@ -14,7 +15,7 @@ export const Auth = async (req, res) => {
         return res.status(401).json({ loggedIn: false })
     }
     try {
-        const verified = jwt.verify(token, 'SECRET_KEY')
+        const verified = jwt.verify(token, process.env.JWT_SECRET_KEY)
         return res.status(200).json({ loggedIn: true })
     } catch (error) {
         return res.status(401).json({ loggedIn: false })
@@ -31,7 +32,7 @@ export const login = async (req, res) => {
         if (!user || !hashPass) {
             return res.status(404).send("")
         }
-        const token = jwt.sign({ id: user._id }, "SECRET_KEY");
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET_KEY);
         res.cookie('token', token, {
             httpOnly: true,
             sameSite: "Lax",
@@ -55,7 +56,7 @@ export const registration = async (req, res) => {
         }
         const hashed = await bcrypt.hash(password, 10)
         const user = await UserModel.create({ fullname, username, email, password: hashed })
-        const token = jwt.sign({ id: user._id }, "SECRET_KEY");
+        const token = jwt.sign({ id: user._id },process.env.JWT_SECRET_KEY);
         res.cookie('token', token, {
             httpOnly: true,
             sameSite: "lax",
@@ -101,14 +102,16 @@ export const profile = async (req, res) => {
     try {
         const user = await UserModel.findOne({ _id: req.user._id }).sort({
             createdAt: -1
-        }).populate('followers').populate('postids')
+        }).populate('followers')
+        .populate({path:'postids',populate:[
+            {path: 'userid',model:'userDetail'},
+            {path: 'commentids',model:'comments', populate: { path: 'sender', model: 'userDetail' }}
+        ]})
         res.send(user)
     } catch (e) {
         return e
     }
 }
-
-
 // show all post in feed 
 export const allposts = async (req, res) => {
     try {
@@ -116,13 +119,12 @@ export const allposts = async (req, res) => {
         const posts = await PostModel.find()
             .sort({ createdAt: -1 })
             .populate("userid").populate({ path: 'commentids', populate: { path: 'sender', model: 'userDetail' } });
-        // console.log(posts);
         
         const modifiedPosts = posts.map((post) => {
             const isLiked = post.likes.includes(userid);
             return {
                 ...post.toObject(), // convert mongoose doc to plain object
-                likeunlike: isLiked ? "Unlike" : "Like",
+                // likeunlike: isLiked ? "Unlike" : "Like",
                 likeCount: post.likes.length,
             };
         });
@@ -137,7 +139,12 @@ export const allposts = async (req, res) => {
 // loading all comments in post
 export const otherPerson = async (req, res) => {
     const { userid } = req.body;
-    const user = await UserModel.findById(userid).populate('postids')
+    const user = await UserModel.findById(userid).populate({path:'postids',populate:[
+            {path: 'userid',model:'userDetail'},
+            {path: 'commentids',model:'comments', populate: { path: 'sender', model: 'userDetail' }}
+        ]})
+    // console.log(user);
+    
     res.send(user)
 }
 
