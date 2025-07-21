@@ -1,6 +1,6 @@
 import express from 'express'
-import * as method from './methods.js'
-import AuthMiddleware from './middlewares/AuthMiddleware.js'
+import * as method from '../methods.js'
+import AuthMiddleware from '../middlewares/AuthMiddleware.js'
 let rout=express.Router()
 
 rout.post('/Auth',method.Auth) // registration
@@ -22,7 +22,7 @@ rout.delete('/deleteProfile',AuthMiddleware,method.deleteProfile)
 rout.get('/getUserDetail',AuthMiddleware,method.getUserDetail)
 rout.patch('/updateUserDetail',AuthMiddleware,method.updateUserDetail)    // 
 rout.post('/chatUser',AuthMiddleware,method.chatUser)    // 
-rout.post('/otherPerson',method.otherPerson)
+rout.post('/otherPerson',AuthMiddleware,method.otherPerson)
 
 
 export default rout

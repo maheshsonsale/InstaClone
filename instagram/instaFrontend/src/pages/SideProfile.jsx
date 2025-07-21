@@ -11,24 +11,17 @@ const SideProfile = () => {
     const [otherUsers, setOtherUsers] = useState([])
 
     useEffect(() => {
-        async function sideprofile() {
-            try {
-                const response = await axios.get(`${BackPath}/sideprofile`, { withCredentials: true })
-                setUsername(response.data.User.username)
-                setFullname(response.data.User.fullname)
-                setPic(response.data.User.pic)
-                setOtherUsers(response.data.otherUsers)
-            } catch (error) {
-                console.log(error);
-            }
-        }
-        sideprofile()
+        axios.get(`${BackPath}/sideprofile`, { withCredentials: true }).then((response) => {
+            setUsername(response.data.User.username)
+            setFullname(response.data.User.fullname)
+            setPic(response.data.User.pic)
+            setOtherUsers(response.data.otherUsers)
+        })
     })
 
     function handleFollowers(frontuserid) {
         try {
             axios.post(`${BackPath}/followers`, { frontuserid }, { withCredentials: true })
-            console.log("navigate");
         } catch (error) {
             console.log(error);
         }
@@ -39,7 +32,6 @@ const SideProfile = () => {
             axios.post(`${BackPath}/following`, { frontuserid }, { withCredentials: true })
         } catch (error) {
             console.log(error);
-
         }
     }
 
@@ -74,7 +66,7 @@ const SideProfile = () => {
             <div className='other-profiles'>
                 <div className='suggested-all' >
                     <span style={{ color: 'gray' }}>Suggested for you</span>
-                    <span style={{ color: 'gray' }}>See All</span>
+                    <span style={{ color: 'whitesmoke' }}>See All</span>
                 </div>
                 {otherUsers.map((user) => (
                     <div key={user._id}>

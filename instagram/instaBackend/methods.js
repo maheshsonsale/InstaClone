@@ -4,7 +4,7 @@ import CommentModel from "./schemas/CommentSchema.js";
 import connectDb from './config/db.js'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
-import { populate } from "dotenv";
+
 connectDb()
 
 
@@ -56,7 +56,7 @@ export const registration = async (req, res) => {
         }
         const hashed = await bcrypt.hash(password, 10)
         const user = await UserModel.create({ fullname, username, email, password: hashed })
-        const token = jwt.sign({ id: user._id },process.env.JWT_SECRET_KEY);
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET_KEY);
         res.cookie('token', token, {
             httpOnly: true,
             sameSite: "lax",
@@ -100,13 +100,13 @@ export const logout = (req, res) => {
 // loading profile data
 export const profile = async (req, res) => {
     try {
-        const user = await UserModel.findOne({ _id: req.user._id }).sort({
-            createdAt: -1
-        }).populate('followers')
-        .populate({path:'postids',populate:[
-            {path: 'userid',model:'userDetail'},
-            {path: 'commentids',model:'comments', populate: { path: 'sender', model: 'userDetail' }}
-        ]})
+        const user = await UserModel.findOne({ _id: req.user._id }).sort({createdAt:-1}).populate('followers')
+            .populate({
+                path: 'postids',options: { sort: { createdAt: -1 } },  populate: [
+                    { path: 'userid', model: 'userDetail' },
+                    { path: 'commentids', model: 'comments', populate: { path: 'sender', model: 'userDetail' } }
+                ]
+            })
         res.send(user)
     } catch (e) {
         return e
@@ -119,7 +119,7 @@ export const allposts = async (req, res) => {
         const posts = await PostModel.find()
             .sort({ createdAt: -1 })
             .populate("userid").populate({ path: 'commentids', populate: { path: 'sender', model: 'userDetail' } });
-        
+
         const modifiedPosts = posts.map((post) => {
             const isLiked = post.likes.includes(userid);
             return {
@@ -129,7 +129,7 @@ export const allposts = async (req, res) => {
             };
         });
 
-        res.status(200).json({modifiedPosts:modifiedPosts,userid:userid});
+        res.status(200).json({ modifiedPosts: modifiedPosts, userid: userid });
     } catch (error) {
         console.error("Like/Unlike logic error:", error);
         res.status(500).json({ message: "Internal Server Error" });
@@ -138,14 +138,22 @@ export const allposts = async (req, res) => {
 
 // loading all comments in post
 export const otherPerson = async (req, res) => {
-    const { userid } = req.body;
-    const user = await UserModel.findById(userid).populate({path:'postids',populate:[
-            {path: 'userid',model:'userDetail'},
-            {path: 'commentids',model:'comments', populate: { path: 'sender', model: 'userDetail' }}
-        ]})
-    // console.log(user);
-    
-    res.send(user)
+    try {
+        const existingUser = req.user._id;
+        const { userid } = req.body;
+        const user = await UserModel.findById(userid).populate({
+            path: 'postids',options: { sort: { createdAt: -1 } },  populate: [
+                { path: 'userid', model: 'userDetail' },
+                { path: 'commentids', model: 'comments', populate: { path: 'sender', model: 'userDetail' } }
+            ]
+        })
+        const isFollowing=user.followers.some(id=>id.toString()===existingUser.toString())
+         const follUnfoll=isFollowing?"Unfollow":"Follow"
+         
+        res.status(200).json({ user: user, existingUser: existingUser,follUnfoll:follUnfoll})
+    } catch (error) {
+        res.status(500).send(error)
+    }
 }
 
 
@@ -236,9 +244,9 @@ export const followers = async (req, res) => {
 // following handling
 export const following = async (req, res) => {
     try {
-        const user = req.user
-        const frontuserid = req.body.frontuserid;
+        const user = await UserModel.findById(req.user._id)
 
+        const frontuserid = req.body.frontuserid;
         const isFollowing = user.following.some(id => id.toString() === frontuserid.toString());
         if (isFollowing) {
             user.following = user.following.filter(id => id.toString() !== frontuserid.toString());
@@ -261,13 +269,13 @@ export const editPic = async (req, res) => {
 // search box to find all users
 export const search = async (req, res) => {
     try {
-        const logUserId=req.user._id;
+        const logUserId = req.user._id;
         const { search } = req.body;
         const users = await UserModel.find({
             $or: [{ username: { $regex: search, $options: 'i' } },
             { fullname: { $regex: search, $options: 'i' } }]
         }).select('-password')
-        res.status(200).json({users:users,logUserId:logUserId})
+        res.status(200).json({ users: users, logUserId: logUserId })
     } catch (error) {
         res.status(400).send(error)
     }
@@ -312,12 +320,12 @@ export const updateUserDetail = async (req, res) => {
     }
 }
 
-export const chatUser=async (req,res) => {
+export const chatUser = async (req, res) => {
     try {
-        const user=await UserModel.findById(req.user._id).populate('following')
+        const user = await UserModel.findById(req.user._id).populate('following')
         res.status(200).send(user)
     } catch (error) {
         res.status(500).send(error)
     }
-    
+
 }

@@ -1,12 +1,12 @@
 /* Login.css - Insta Style Dark Theme */
 
-body {
+/* body {
     background-color: #121212;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     padding: 0;
     color: #fff;
-}
+} */
 
 .insta-login-wrapper {
     display: flex;

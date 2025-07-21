@@ -26,22 +26,18 @@ const ProfilePage = () => {
 
     // Fetch profile data
     useEffect(() => {
-        async function fetchProfile() {
-            try {
-                const response = await axios.get(`${BackPath}/profile`, { withCredentials: true });
-                setFullname(response.data.fullname);
-                setUsername(response.data.username);
-                setBio(response.data.bio);
-                setFollowers(response.data.followers)
-                setFollowing(response.data.following)
-                setImageUrl(response.data.pic)
-                setPosts(response.data.postids)
-            } catch (error) {
-                console.log(error);
-            }
-        }
-
-        fetchProfile();
+        axios.get(`${BackPath}/profile`, { withCredentials: true }).then((response) => {
+            setFullname(response.data.fullname);
+            setUsername(response.data.username);
+            setBio(response.data.bio);
+            setFollowers(response.data.followers)
+            setFollowing(response.data.following)
+            setImageUrl(response.data.pic)
+            setPosts(response.data.postids)
+            setLoggedInUser(response?.data?._id)
+        }).catch((error) => {
+            console.log(error);
+        })
     });
 
 
@@ -59,10 +55,10 @@ const ProfilePage = () => {
     //         console.log(error);
     //     }
     // }
+    
     async function handlePic(e) {
         const file = e.target.files[0]
         if (!file) { return }
-
         const data = new FormData()
         data.append("file", file)
         data.append("upload_preset", "instagram")
@@ -75,16 +71,6 @@ const ProfilePage = () => {
         }
     }
 
-    // post section 
-    useEffect(() => {
-        axios.get(`${BackPath}/allposts`, {
-            withCredentials: true,
-        }).then((res) => {
-            setLoggedInUser(res?.data?.userid)
-        }).catch(() => {
-            console.error('Error fetching posts:');
-        })
-    }, []);
     // *******************************************like handler function****************************************
     function handleLike(postid) {
         axios.put(`${BackPath}/likes`, { postid }, { withCredentials: true, }).then().catch((err) => {
@@ -158,12 +144,15 @@ const ProfilePage = () => {
                         <strong>{fullname}</strong><br />
                         <p>{bio}</p>
                     </div>
+                    <div className="profile-stats">
+                    <button onClick={()=>navigate('/home/createpost')}>Create Post</button>
+                    </div>
                 </div>
             </div>
 
             <div className="dashboard-container">
                 <h2 className="dashboard-title">📋 My Posts</h2>
-
+            
                 <Posts
                     posts={posts}
                     activeCommentPostId={activeCommentPostId}

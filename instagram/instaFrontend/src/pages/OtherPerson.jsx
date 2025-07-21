@@ -11,7 +11,7 @@ const OtherPerson = () => {
     const userid = location.state?.userdata._id;// receving user detail from side profile 
 
     const [user, setUser] = useState('')
-
+    const [follUnfoll, setFollUnfoll] = useState('')
     const [posts, setPosts] = useState([]);
     const [loggedInUser, setLoggedInUser] = useState('');
     const [activeCommentPostId, setActiveCommentPostId] = useState(null);
@@ -27,20 +27,15 @@ const OtherPerson = () => {
 
     useEffect(() => {
         axios.post(`${BackPath}/otherPerson`, { userid: userid }, { withCredentials: true }).then((res) => {
-            setUser(res.data)
-            setPosts(res.data.postids)
+            setFollUnfoll(res?.data?.follUnfoll)
+            setUser(res?.data?.user)
+            setPosts(res?.data?.user?.postids)
+            setLoggedInUser(res?.data?.userid)
+        }).catch((error) => {
+            console.log(error);
         })
     })
-    // post section 
-    useEffect(() => {
-        axios.get(`${BackPath}/allposts`, {
-            withCredentials: true,
-        }).then((res) => {
-            setLoggedInUser(res?.data?.userid)
-        }).catch(() => {
-            console.error('Error fetching posts:');
-        })
-    });
+
 
     function handleLike(postid) {
         axios.put(`${BackPath}/likes`, { postid }, { withCredentials: true, }).then().catch((err) => {
@@ -77,6 +72,22 @@ const OtherPerson = () => {
         }
     }
 
+    function handleFollowers(frontuserid) {
+        try {
+            axios.post(`${BackPath}/followers`, { frontuserid }, { withCredentials: true })
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    function following(frontuserid) {
+        try {
+            axios.post(`${BackPath}/following`, { frontuserid }, { withCredentials: true })
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     return (
         <div className="profile-container">
             <div className="profile-header">
@@ -85,30 +96,24 @@ const OtherPerson = () => {
                 <div className="profile-info">
                     <div className="username-section">
                         <h2>{user.username}</h2>
-                        <button className="btn">Follow</button>
-                        <button className="btn">Message</button>
+                        <button className="btn" onClick={() => { handleFollowers(user._id); following(user._id); }}>{follUnfoll}</button>
+                        <button className="btn" onClick={()=>navigate('/home/chat')}>Message</button>
                         <button className="btn">🙂➕</button>
                         <h2 style={{ cursor: 'pointer' }}>⋯</h2>
 
                     </div>
-
                     <div className="profile-stats">
                         <span><strong>{user?.postids?.length}</strong> posts</span>
                         <span><strong>{user?.followers?.length}</strong> followers</span>
                         <span><strong>{user?.following?.length}</strong> following</span>
                     </div>
-
                     <div className="bio">
-
                         <p>{user.bio}</p>
-
                     </div>
                 </div>
             </div>
-
             <div className="dashboard-container">
                 <h2 className="dashboard-title">{user.username}' posts</h2>
-
                 <Posts
                     posts={posts}
                     activeCommentPostId={activeCommentPostId}

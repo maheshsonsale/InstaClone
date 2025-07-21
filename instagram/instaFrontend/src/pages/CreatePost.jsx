@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import axios from "axios";
+import {useNavigate} from 'react-router-dom'
 import "../css/CreatePost.css"; // Optional for styling
 import { BackPath } from "../components/BackendPath";
 function CreatePost() {
+  const navigate=useNavigate()
     const [content, setContent] = useState("");
     const [message, setMessage] = useState("");
     const [preview,setPreview]=useState(null)
@@ -16,6 +18,9 @@ function CreatePost() {
             return;
         }
         setMessage("")
+        setImage("")
+          navigate('/home/profile')
+        
         try {
             axios.post(`${BackPath}/createpost`, { content,image:image }, { withCredentials: true });
             setContent("")
