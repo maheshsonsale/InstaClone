@@ -121,7 +121,7 @@ export const allposts = async (req, res) => {
             .populate("userid").populate({ path: 'commentids', populate: { path: 'sender', model: 'userDetail' } });
 
         const modifiedPosts = posts.map((post) => {
-            const isLiked = post.likes.includes(userid);
+            // const isLiked = post.likes.includes(userid);
             return {
                 ...post.toObject(), // convert mongoose doc to plain object
                 // likeunlike: isLiked ? "Unlike" : "Like",
@@ -199,11 +199,12 @@ export const comments = async (req, res) => {
         const post = await PostModel.findById(postid)
         const sender = await UserModel.findById({ _id: req.user._id });
         const comment = await CommentModel.create({ postid: postid, comments: comments, sender: sender._id })
+
         sender.commentids.push(comment._id)
         await sender.save()
-
         post.commentids.push(comment._id)
         await post.save()
+
     } catch (error) {
         console.log("Comment Error", error);
     }
@@ -327,5 +328,4 @@ export const chatUser = async (req, res) => {
     } catch (error) {
         res.status(500).send(error)
     }
-
 }

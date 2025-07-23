@@ -10,7 +10,7 @@ const Navbar = () => {
     async function handleLogout() {
         try {
             await axios.get("http://localhost:5000/logout", { withCredentials: true });
-            console.log("Logged out successfully");
+            // console.log("Logged out successfully");
             navigate("/");
         } catch (error) {
             console.log("Logout error:", error);
